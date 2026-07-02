@@ -1,0 +1,182 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('projects')).sort(
+    (a, b) => a.data.order - b.data.order,
+  );
+  // prev/next stay within the same track
+  return projects.map((project) => {
+    const siblings = projects.filter((p) => p.data.track === project.data.track);
+    const i = siblings.findIndex((p) => p.id === project.id);
+    return {
+      params: { slug: project.id },
+      props: {
+        project,
+        prev: siblings[i - 1] ?? null,
+        next: siblings[i + 1] ?? null,
+      },
+    };
+  });
+}
+
+const { project, prev, next } = Astro.props;
+const d = project.data;
+const { Content } = await render(project);
+---
+
+<Layout title={`${d.title} — Jonas Schäfer`} description={d.tagline}>
+  <Nav />
+  <main class={`project track--${d.track}`}>
+    <div class="container project__inner">
+      <a class="backlink" href="/#projects">
+        <span aria-hidden="true">←</span> Projects
+      </a>
+
+      <header class="project__head">
+        <p class="label project__eyebrow">
+          {[d.role, d.period].filter(Boolean).join('  ·  ')}
+        </p>
+        <h1 class="project__title">{d.title}</h1>
+        <p class="project__tagline">{d.tagline}</p>
+
+        <div class="project__facts">
+          {d.metric && (
+            <div class="project__metric">
+              <span class="project__metric-value">{d.metric.value}</span>
+              <span class="project__metric-label label">{d.metric.label}</span>
+            </div>
+          )}
+          {d.tags.length > 0 && (
+            <ul class="tags project__tags">
+              {d.tags.map((t) => <li>{t}</li>)}
+            </ul>
+          )}
+        </div>
+
+        {d.href && (
+          <a class="btn btn--primary project__cta" href={d.href} target="_blank" rel="noopener">
+            Visit project <span aria-hidden="true">↗</span>
+          </a>
+        )}
+      </header>
+
+      <hr class="limb project__rule" />
+
+      <article class="prose rich project__body">
+        <Content />
+      </article>
+
+      <nav class="project__nav" aria-label="More projects">
+        {prev ? (
+          <a class="project__navlink project__navlink--prev" href={`/projects/${prev.id}`}>
+            <span class="label">← Previous</span>
+            <span class="project__navtitle">{prev.data.title}</span>
+          </a>
+        ) : <span />}
+        {next ? (
+          <a class="project__navlink project__navlink--next" href={`/projects/${next.id}`}>
+            <span class="label">Next →</span>
+            <span class="project__navtitle">{next.data.title}</span>
+          </a>
+        ) : <span />}
+      </nav>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <span class="label">© 2026 Jonas Schäfer</span>
+        <a class="label" href="/#projects">All projects</a>
+      </div>
+      <p class="footer__note">
+        This website has been largely created with large language models
+        (Anthropic Claude). All content has been human reviewed for accuracy.
+      </p>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  .project {
+    --track-ink: var(--energy-ink);
+    --track-glow: var(--glow);
+    padding-top: 8rem; padding-bottom: var(--space-2xl);
+  }
+  .track--compsci { --track-ink: var(--compute-ink); --track-glow: var(--compute-glow); }
+  .track--energy { --track-ink: var(--energy-ink); --track-glow: var(--glow); }
+  .track--climate { --track-ink: var(--earth-ink); --track-glow: var(--earth-glow); }
+  .project__inner { max-width: 54rem; }
+
+  .backlink {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--font-mono); font-size: var(--step--1);
+    color: var(--muted);
+    transition: color 0.2s var(--ease);
+  }
+  .backlink:hover { color: var(--track-ink); }
+
+  .project__head { margin-top: var(--space-l); }
+  .project__eyebrow { margin-bottom: var(--space-s); color: var(--track-ink); }
+  .project__title { font-size: var(--step-3); margin-bottom: var(--space-s); }
+  .project__tagline {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    line-height: 1.35;
+    color: var(--muted);
+    max-width: 42ch;
+  }
+
+  .project__facts {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: var(--space-m) var(--space-l);
+    margin-top: var(--space-l);
+  }
+  .project__metric { display: flex; align-items: baseline; gap: 0.6rem; }
+  .project__metric-value {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 600; letter-spacing: -0.03em;
+    color: var(--track-ink); line-height: 1;
+  }
+  .project__metric-label { max-width: 16ch; line-height: 1.3; }
+  .track--climate .btn--primary {
+    background: var(--earth); box-shadow: 0 6px 24px -8px rgba(var(--earth-glow), 0.7);
+  }
+  .track--compsci .btn--primary {
+    background: var(--compute-ink); color: #17082e;
+    box-shadow: 0 6px 24px -8px rgba(var(--compute-glow), 0.7);
+  }
+  .project__tags { margin-top: 0; }
+  .project__cta { margin-top: var(--space-l); }
+
+  .project__rule { margin-block: var(--space-xl); }
+
+  .project__nav {
+    display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-m);
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-l);
+    border-top: 1px solid var(--line);
+  }
+  .project__navlink {
+    display: flex; flex-direction: column; gap: 0.35rem;
+    padding: var(--space-m);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    transition: border-color 0.2s var(--ease), transform 0.2s var(--ease);
+  }
+  .project__navlink:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+  .project__navlink--next { text-align: right; align-items: flex-end; }
+  .project__navtitle {
+    font-family: var(--font-display); font-weight: 540;
+    letter-spacing: -0.01em; color: var(--ink);
+  }
+
+  @media (max-width: 640px) {
+    .project { padding-top: 6rem; }
+    .project__nav { grid-template-columns: 1fr; }
+    .project__navlink--next { text-align: left; align-items: flex-start; }
+  }
+</style>

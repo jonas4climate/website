@@ -1,0 +1,53 @@
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const research = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/research' }),
+  schema: z.object({
+    title: z.string(),
+    venue: z.string(),          // journal / conference
+    year: z.number(),
+    authors: z.string(),        // author list, "Schäfer, J." bolded client-side
+    status: z.enum(['published', 'in review', 'preprint', 'working paper']).default('published'),
+    links: z
+      .array(z.object({ label: z.string(), href: z.string().url() }))
+      .default([]),
+    order: z.number().default(0),
+  }),
+});
+
+const projects = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
+  schema: z.object({
+    title: z.string(),
+    tagline: z.string(),
+    role: z.string().optional(),
+    period: z.string().optional(),      // e.g. "2024 — present"
+    tags: z.array(z.string()).default([]),
+    metric: z.object({ value: z.string(), label: z.string() }).optional(),
+    href: z.string().url().optional(),
+    // compsci → computational science (violet); energy → energy research (orange);
+    // climate → sustainability/advocacy (green)
+    track: z.enum(['compsci', 'energy', 'climate']).default('compsci'),
+    featured: z.boolean().default(false), // show on the homepage (as a wide card)
+    order: z.number().default(0),
+  }),
+});
+
+const education = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/education' }),
+  schema: z.object({
+    credential: z.string(),                 // "MSc Computer Science", "Certificate: …"
+    institution: z.string(),
+    field: z.string().optional(),           // subject / specialisation
+    period: z.string(),                     // "2021 — 2023" or "2020"
+    year: z.number(),                       // sort key (end/award year)
+    location: z.string().optional(),
+    kind: z.enum(['degree', 'certificate', 'course']).default('degree'),
+    note: z.string().optional(),            // grade, thesis, honours, one line
+    href: z.string().url().optional(),      // link to certificate / programme
+    order: z.number().default(0),
+  }),
+});
+
+export const collections = { research, projects, education };

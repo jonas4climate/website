@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # npm dependencies (Astro, fontsource, etc.)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # bundle minor/patch bumps into one PR to reduce noise
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # keep the GitHub Actions in the deploy workflow current
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

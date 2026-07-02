@@ -1,0 +1,569 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import { PROJECTS_LAYOUT } from '../site.config';
+
+const allProjects = (await getCollection('projects')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+// The homepage previews a few projects per track; the rest live on /projects/.
+// Layout (see site.config.ts) decides the column arrangement. Each rendered
+// column is an array of track-blocks that stack vertically.
+const topN = (t: string, n: number) =>
+  allProjects.filter((p) => p.data.track === t).slice(0, n);
+const LABELS: Record<string, string> = {
+  energy: 'Energy research',
+  compsci: 'Computational science',
+  climate: 'Climate & sustainability',
+};
+const block = (key: string, n: number) => ({ key, label: LABELS[key], items: topN(key, n) });
+const projectColumns =
+  PROJECTS_LAYOUT === 'energy-focus'
+    ? [[block('energy', 2)], [block('compsci', 1), block('climate', 1)]]
+    : [[block('energy', 2)], [block('compsci', 2)], [block('climate', 2)]];
+const trackColCount = projectColumns.length;
+const shownCount = projectColumns.flat().reduce((n, b) => n + b.items.length, 0);
+const hasMoreProjects = allProjects.length > shownCount;
+
+const research = (await getCollection('research')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const education = (await getCollection('education')).sort(
+  (a, b) => b.data.year - a.data.year || a.data.order - b.data.order,
+);
+
+// bold the author's own name in a citation string
+function markAuthor(authors: string) {
+  return authors.replace(/(Schäfer, ?J\.?)/g, '<strong>$1</strong>');
+}
+---
+
+<Layout>
+  <Nav />
+  <main>
+    <Hero />
+
+    <!-- ================= ABOUT ================= -->
+    <hr class="limb" />
+    <section id="about" class="section">
+      <div class="container about">
+        <div class="about__head">
+          <p class="label">
+            <span class="idx-dot"></span> About
+          </p>
+        </div>
+        <div class="about__body">
+          <p class="about__lead">
+            I work on the <em>optimal operation of buildings</em> — the control
+            systems that decide how a building heats, cools or ventilates itself.
+          </p>
+          <div class="prose text-muted about__detail">
+            <p>
+              Most buildings are run by rules deeply embedded in hardware.
+              My research investigates ways to operate the existing building stock in more
+              energy-efficient and grid-supportive ways. I focus on operation in the cloud, making use of <em>smart device</em> data and predictive algorithms to optimize operation.
+            </p>
+            <p>
+              Currently, I mainly work on a software framework to enable wider deployments of data-supported rule-based or model-predictive control.
+              For models, I typically utilize machine learning methods and occasionally lean on traditional control theory.
+            </p>
+            <p>
+              Before my PhD I was active in the <span class="hl-climate">climate advocacy</span> scene, supporting movements and education work on the main climate challenges and solutions.
+            </p>
+          </div>
+          <dl class="facts">
+            <div><dt class="label">Field</dt><dd>Energy systems · Internet of Things · Control theory</dd></div>
+            <div><dt class="label">Methods</dt><dd>MPC · ML</dd></div>
+            <div><dt class="label">Based in</dt><dd>Germany</dd></div>
+            <div><dt class="label">Languages</dt><dd>German (native) · English (C2) · French (B1+)</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= EDUCATION ================= -->
+    <hr class="limb" />
+    <section id="education" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">/ education</span>
+          <h2>Education</h2>
+          <div class="viewtoggle" role="group" aria-label="Education view">
+            <button type="button" class="viewtoggle__btn" data-view="table" aria-pressed="true">Table</button>
+            <button type="button" class="viewtoggle__btn" data-view="timeline" aria-pressed="false">Timeline</button>
+          </div>
+        </div>
+        <ol class="edu" data-view="table">
+          {education.map((e) => (
+            <li class="edu__item">
+              <div class="edu__year label">{e.data.period}</div>
+              <div class="edu__main">
+                <h3 class="edu__cred">{e.data.credential}</h3>
+                <p class="edu__inst">
+                  {e.data.institution}
+                  {e.data.location && <span class="edu__loc"> · {e.data.location}</span>}
+                </p>
+                {e.data.field && <p class="edu__field text-muted">{e.data.field}</p>}
+                {e.data.note && <p class="edu__note text-muted">{e.data.note}</p>}
+                <div class="edu__foot">
+                  <span class={`chip chip--${e.data.kind}`}>{e.data.kind}</span>
+                  {e.data.href && (
+                    <a class="pub__link" href={e.data.href} target="_blank" rel="noopener">
+                      Credential <span aria-hidden="true">↗</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= RESEARCH ================= -->
+    <hr class="limb" />
+    <section id="research" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">/ research</span>
+          <h2>Peer-reviewed</h2>
+        </div>
+        {research.length === 0 && (
+          <p class="pubs-empty">
+            <span class="label label--energy">In the works</span>
+            First publications from my PhD are on the way — check back soon.
+          </p>
+        )}
+        <ol class="pubs">
+          {research.map((p) => (
+            <li class="pub">
+              <div class="pub__year label">{p.data.year}</div>
+              <div class="pub__main">
+                <h3 class="pub__title">{p.data.title}</h3>
+                <p class="pub__meta">
+                  <span set:html={markAuthor(p.data.authors)} />
+                  <span class="pub__venue"> · <em>{p.data.venue}</em></span>
+                </p>
+                <div class="pub__foot">
+                  <span class={`chip chip--${p.data.status.replace(/\s/g, '-')}`}>
+                    {p.data.status}
+                  </span>
+                  {p.data.links.map((l) => (
+                    <a class="pub__link" href={l.href} target="_blank" rel="noopener">
+                      {l.label} <span aria-hidden="true">↗</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= PROJECTS ================= -->
+    <hr class="limb" />
+    <section id="projects" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">/ projects</span>
+          <h2>Projects</h2>
+        </div>
+        <div class={`tracks tracks--${trackColCount}`}>
+          {projectColumns.map((group) => (
+            <div class="track-col__group">
+              {group.map((b) => (
+                <div class={`track-col track-col--${b.key}`}>
+                  <div class="track-col__head">
+                    <span class="track-col__label label">{b.label}</span>
+                  </div>
+                  <div class="track-col__cards">
+                    {b.items.map((p) => (
+                      <a class={`card card--${p.data.track}`} href={`/projects/${p.id}`}>
+                        <div class="card__body">
+                          <div class="card__topline">
+                            <h3>{p.data.title}</h3>
+                            {p.data.period && <span class="card__period label">{p.data.period}</span>}
+                          </div>
+                          <p class="card__tagline text-muted">{p.data.tagline}</p>
+                          <ul class="tags">
+                            {p.data.tags.map((t) => <li>{t}</li>)}
+                          </ul>
+                          <span class="card__more label">Read more →</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        {hasMoreProjects && (
+          <div class="projects__more">
+            <a class="link" href="/projects/">Browse all projects →</a>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- ================= CONTACT ================= -->
+    <hr class="limb" />
+    <section id="contact" class="section section--contact">
+      <div class="container contact">
+        <p class="label label--energy">Say hello</p>
+        <h2 class="contact__title">Let's talk about buildings<br />that run better.</h2>
+        <div class="contact__links">
+          <a class="link" href="mailto:jonas[at]schaefer[dot]earth">jonas[at]schaefer[dot]earth</a>
+          <a class="link" href="https://github.com/jonas4climate" target="_blank" rel="noopener">GitHub</a>
+          <a class="link" href="https://www.linkedin.com/in/jonas-schaefer/" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer__inner">
+          <span class="label">© 2026 Jonas Schäfer</span>
+          <span class="label">schaefer.earth</span>
+        </div>
+        <p class="footer__note">
+          This website has been largely created with large language models
+          (Anthropic Claude). All content has been human reviewed for accuracy.
+        </p>
+      </div>
+    </footer>
+  </main>
+</Layout>
+
+<style>
+  main { position: relative; }
+
+  /* ---- About ---- */
+  .about {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: var(--space-l) var(--space-xl);
+  }
+  .about__head { position: sticky; top: 5rem; align-self: start; }
+  .idx-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--energy); margin-right: 0.5rem; vertical-align: middle;
+    box-shadow: 0 0 8px rgba(var(--glow), 0.7);
+  }
+  .about__body { max-width: var(--measure); }
+  .about__lead {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-m);
+  }
+  .about__lead em { color: var(--energy-ink); font-style: normal; }
+  .about__detail p + p { margin-top: var(--space-s); }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: var(--space-m);
+    margin-top: var(--space-l);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .facts dt { margin-bottom: 0.35rem; }
+  .facts dd { font-size: var(--step--1); color: var(--ink); }
+
+  /* ---- Publications ---- */
+  .pubs { list-style: none; padding: 0; }
+  .pub {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .pub:last-child { border-bottom: 1px solid var(--line); }
+  .pub__year { padding-top: 0.3rem; color: var(--faint); }
+  .pub__title { margin-bottom: 0.4rem; }
+  .pub__meta { color: var(--muted); font-size: var(--step--1); }
+  .pub__meta :global(strong) { color: var(--ink); font-weight: 600; }
+  .pub__foot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s);
+    margin-top: 0.75rem;
+  }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    color: var(--muted);
+  }
+  .chip--published { color: var(--success); border-color: color-mix(in oklab, var(--success) 50%, transparent); }
+  .chip--in-review { color: var(--energy-ink); border-color: color-mix(in oklab, var(--energy) 45%, transparent); }
+  .pub__link {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--muted);
+    transition: color 0.2s var(--ease);
+  }
+  .pub__link:hover { color: var(--energy-ink); }
+  .pubs-empty {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s);
+    color: var(--muted); font-size: var(--step-0);
+    padding-block: var(--space-m);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .chip--degree { color: var(--ink); border-color: var(--line-strong); }
+  .chip--certificate { color: var(--award); border-color: color-mix(in oklab, var(--award) 55%, transparent); }
+  .chip--course { color: var(--muted); }
+
+  /* ---- Education view toggle ---- */
+  .viewtoggle {
+    margin-left: auto;
+    align-self: center;
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+  .viewtoggle__btn {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.32rem 0.7rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .viewtoggle__btn:hover { color: var(--ink); }
+  .viewtoggle__btn[aria-pressed='true'] {
+    background: color-mix(in oklab, var(--energy) 22%, transparent);
+    color: var(--energy-ink);
+  }
+
+  /* ---- Education (table view — default) ---- */
+  .edu { list-style: none; padding: 0; }
+  .edu__item {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .edu__item:last-child { border-bottom: 1px solid var(--line); }
+  .edu__year { padding-top: 0.3rem; color: var(--faint); white-space: nowrap; }
+  .edu__cred { margin-bottom: 0.25rem; }
+  .edu__inst { font-size: var(--step-0); }
+  .edu__loc { color: var(--muted); }
+  .edu__field, .edu__note { font-size: var(--step--1); margin-top: 0.2rem; }
+  .edu__foot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s);
+    margin-top: 0.6rem;
+  }
+
+  /* ---- Education (timeline view) ---- */
+  .edu[data-view='timeline'] { padding-left: 0.4rem; }
+  .edu[data-view='timeline'] .edu__item {
+    display: block;
+    border-top: none;
+    position: relative;
+    margin-left: 4px;
+    padding: 0 0 var(--space-l) 1.6rem;
+    border-left: 2px solid var(--line-strong);
+  }
+  .edu[data-view='timeline'] .edu__item:last-child {
+    border-bottom: none;
+    padding-bottom: 0.3rem;
+  }
+  .edu[data-view='timeline'] .edu__item::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 3px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--space);
+    border: 2px solid var(--energy);
+    box-shadow: 0 0 8px rgba(var(--glow), 0.5);
+  }
+  .edu[data-view='timeline'] .edu__year {
+    padding-top: 0;
+    margin-bottom: 0.35rem;
+    color: var(--energy-ink);
+  }
+
+  /* ---- Projects: parallel track columns (2 or 3, per site config) ---- */
+  .tracks { display: grid; gap: var(--space-l); }
+  .tracks--3 { grid-template-columns: repeat(3, 1fr); }
+  .tracks--2 { grid-template-columns: 1fr 1fr; }
+  /* a column can hold more than one stacked track-block (energy-focus layout) */
+  .track-col__group { display: flex; flex-direction: column; gap: var(--space-xl); }
+  .track-col--compsci { --track-ink: var(--compute-ink); --track-glow: var(--compute-glow); }
+  .track-col--energy { --track-ink: var(--energy-ink); --track-glow: var(--glow); }
+  .track-col--climate { --track-ink: var(--earth-ink); --track-glow: var(--earth-glow); }
+  .track-col__head {
+    padding-left: var(--space-s);
+    border-left: 2px solid var(--track-ink);
+    margin-bottom: var(--space-m);
+  }
+  .track-col__label { color: var(--track-ink); }
+  .track-col__cards { display: flex; flex-direction: column; gap: var(--space-m); }
+  /* stack columns when they get too narrow */
+  @media (max-width: 1000px) {
+    .tracks--3 { grid-template-columns: 1fr; gap: var(--space-xl); }
+  }
+  @media (max-width: 720px) {
+    .tracks--2 { grid-template-columns: 1fr; gap: var(--space-xl); }
+  }
+
+  /* ---- Project cards ---- */
+  .card {
+    /* track accent — compsci = violet, energy = orange, climate = green */
+    --track-ink: var(--energy-ink);
+    --track-glow: var(--glow);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+    padding: var(--space-l);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+    overflow: hidden;
+  }
+  .card--compsci { --track-ink: var(--compute-ink); --track-glow: var(--compute-glow); }
+  .card--energy { --track-ink: var(--energy-ink); --track-glow: var(--glow); }
+  .card--climate { --track-ink: var(--earth-ink); --track-glow: var(--earth-glow); }
+  .card::after {
+    content: '';
+    position: absolute; inset: auto -40% -60% auto;
+    width: 60%; height: 60%;
+    background: radial-gradient(closest-side, rgba(var(--track-glow), 0.12), transparent 70%);
+    opacity: 0; transition: opacity 0.3s var(--ease);
+    pointer-events: none;
+  }
+  .card:hover {
+    border-color: color-mix(in oklab, var(--track-ink) 40%, var(--line-strong));
+    transform: translateY(-3px);
+  }
+  .card:hover::after { opacity: 1; }
+  .card--wide { grid-column: span 2; flex-direction: row; align-items: stretch; }
+  .card--wide .card__body { flex: 1; }
+
+  .card__track {
+    display: block;
+    color: var(--track-ink);
+    margin-bottom: var(--space-s);
+  }
+
+  .card__metric {
+    display: flex; flex-direction: column; gap: 0.35rem;
+    padding-right: var(--space-l);
+    border-right: 1px solid var(--line);
+    justify-content: center;
+    min-width: 9rem;
+  }
+  .card:not(.card--wide) .card__metric {
+    border-right: 0; padding-right: 0;
+    flex-direction: row; align-items: baseline; gap: 0.6rem;
+  }
+  .card__metric-value {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--track-ink);
+    line-height: 1;
+  }
+  .card__metric-label { max-width: 12ch; line-height: 1.3; }
+
+  .card__topline {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: var(--space-s); margin-bottom: 0.6rem;
+  }
+  .card__period { color: var(--faint); white-space: nowrap; }
+  .card__tagline { font-size: var(--step--1); line-height: 1.55; }
+  .tags {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    list-style: none; padding: 0; margin-top: var(--space-m);
+  }
+  .tags li {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .card__more {
+    display: inline-block;
+    margin-top: var(--space-m);
+    color: var(--track-ink);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+  .card:hover .card__more,
+  .card:focus-visible .card__more { opacity: 1; transform: translateX(0); }
+  @media (hover: none) { .card__more { opacity: 1; transform: none; } }
+  .projects__more { margin-top: var(--space-l); }
+
+  /* ---- Contact ---- */
+  .section--contact { padding-block: var(--space-3xl); text-align: center; }
+  .contact__title {
+    margin: var(--space-s) auto var(--space-l);
+    max-width: 18ch;
+  }
+  .contact__links {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: var(--space-m);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+
+  /* ---- Footer ---- */
+  .footer { border-top: 1px solid var(--line); padding-block: var(--space-l); }
+  .footer__inner { display: flex; justify-content: space-between; gap: var(--space-m); flex-wrap: wrap; }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 780px) {
+    .about { grid-template-columns: 1fr; }
+    .about__head { position: static; }
+    .facts { grid-template-columns: 1fr; gap: var(--space-s); }
+    .pub { grid-template-columns: 1fr; gap: 0.4rem; }
+    .pub__year { padding-top: 0; }
+    .edu__item { grid-template-columns: 1fr; gap: 0.4rem; }
+    .edu__year { padding-top: 0; }
+  }
+</style>
+
+<script>
+  // Education table ⇄ timeline toggle (persisted per visitor)
+  const eduList = document.querySelector<HTMLOListElement>('.edu');
+  const toggle = document.querySelector<HTMLElement>('.viewtoggle');
+  if (eduList && toggle) {
+    const btns = Array.from(toggle.querySelectorAll<HTMLButtonElement>('.viewtoggle__btn'));
+    const apply = (view: string) => {
+      eduList.dataset.view = view;
+      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+      localStorage.setItem('eduView', view);
+    };
+    toggle.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.viewtoggle__btn');
+      if (btn?.dataset.view) apply(btn.dataset.view);
+    });
+    if (localStorage.getItem('eduView') === 'timeline') apply('timeline');
+  }
+</script>

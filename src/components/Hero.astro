@@ -1,0 +1,320 @@
+---
+import { HERO_MODE } from '../site.config';
+
+// Assets per mode.
+const POSTER: Record<string, string> = {
+  horizon: '/images/earth-horizon.jpg',
+};
+const posterSrc = POSTER[HERO_MODE];
+const isMedia = HERO_MODE !== 'css';
+
+// Concise on-page attribution (full text lives in the README credits section).
+const CREDIT: Record<string, { label: string; href: string }> = {
+  horizon: {
+    label: 'Photo — NASA / ISS063-E-68417',
+    href: 'https://science.nasa.gov/earth/earth-observatory/new-year-new-horizon-147709/',
+  },
+};
+const credit = CREDIT[HERO_MODE];
+
+// City lights for the CSS hero: each point a building drawing energy.
+function seeded(i: number) {
+  const x = Math.sin(i * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
+const APEX = 70;      // vh — top of the CSS limb
+const CURVE = 8.5;    // vh — drop toward the edges
+const lights = Array.from({ length: 64 }, (_, i) => {
+  const x = 3 + seeded(i) * 94;
+  const t = (x - 50) / 50;
+  const rim = CURVE * t * t;
+  const below = 0.4 + seeded(i + 50) * 3.4;
+  const top = APEX + rim + below;
+  const size = (0.8 + seeded(i + 200) * 1.9).toFixed(2);
+  const edgeFade = 1 - Math.abs(t) * 0.5;
+  const opacity = ((0.45 + seeded(i + 300) * 0.5) * edgeFade).toFixed(2);
+  const delay = (seeded(i + 400) * 6).toFixed(2);
+  return { x: x.toFixed(2), top: top.toFixed(2), size, opacity, delay };
+});
+---
+
+<section id="top" class="hero" data-hero-mode={HERO_MODE}>
+  <div class="hero__sky" aria-hidden="true">
+    <div class="stars stars--far"></div>
+    <div class="stars stars--near"></div>
+  </div>
+
+  <!-- CSS limb (the 'css' hero, and the fallback if a photo fails) -->
+  <div class="hero__earth" aria-hidden="true">
+    <div class="fallback">
+      <div class="earth__glow"></div>
+      <div class="earth__globe"></div>
+    </div>
+  </div>
+  <div class="hero__lights" aria-hidden="true">
+    {lights.map((l) => (
+      <span
+        class="citylight"
+        style={`left:${l.x}%;top:${l.top}vh;width:${l.size}px;height:${l.size}px;opacity:${l.opacity};animation-delay:${l.delay}s`}
+      ></span>
+    ))}
+  </div>
+
+  {isMedia && (
+    <img
+      class="hero__media"
+      src={posterSrc}
+      alt=""
+      decoding="async"
+      fetchpriority="high"
+    />
+  )}
+  {isMedia && <div class="hero__scrim" aria-hidden="true"></div>}
+
+  <div class="container hero__content">
+    <p class="label label--energy reveal" style="--d:0.05s">
+      <span class="coord">50.92°N&nbsp;6.36°E&nbsp;·&nbsp;Forschungszentrum&nbsp;Jülich</span>
+    </p>
+    <h1 class="hero__title">
+      <span class="reveal" style="--d:0.12s">Jonas&nbsp;Schäfer</span>
+    </h1>
+    <p class="hero__lede prose reveal" style="--d:0.24s">
+      <span class="hl-climate">Climate advocate</span> and <span class="hl-energy">PhD candidate</span> developing
+      <strong>building automation and optimal control software</strong>
+      for a more sustainable built environment.
+    </p>
+    <div class="hero__actions reveal" style="--d:0.34s">
+      <a href="#research" class="btn btn--primary">Read the research</a>
+      <a href="#contact" class="btn btn--ghost">Get in touch</a>
+    </div>
+  </div>
+
+  <a href="#about" class="hero__scroll reveal" style="--d:0.5s" aria-label="Scroll to content">
+    <span class="label">Scroll</span>
+    <span class="hero__scrollline" aria-hidden="true"></span>
+  </a>
+
+  {credit && (
+    <a class="hero__credit" href={credit.href} target="_blank" rel="noopener">
+      {credit.label} <span aria-hidden="true">↗</span>
+    </a>
+  )}
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+      radial-gradient(130% 90% at 50% -20%, #0e1219 0%, var(--space) 46%, var(--void) 100%);
+  }
+  :global([data-theme='light']) .hero {
+    background:
+      radial-gradient(130% 90% at 50% -20%, #ffffff 0%, #eef1f5 46%, var(--void) 100%);
+  }
+  /* Over a dark space photo, keep text light in either theme. */
+  .hero[data-hero-mode='horizon'] {
+    --ink: #f2f3f1;
+    --muted: #c7ccd3;
+    --faint: #9aa0a8;
+    --line-strong: #4a515a;
+    /* keep accents bright over the dark photo in either theme */
+    --energy-ink: #ff9457;
+    --earth-ink: #4ecf9e;
+    background: #04060a;
+  }
+
+  /* ---- Star field (css hero only) ---- */
+  .hero__sky { position: absolute; inset: 0; z-index: -3; }
+  .stars { position: absolute; inset: -50% 0 0 0; background-repeat: repeat; }
+  .stars--far {
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 40% 68%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 85% 45%, rgba(255,255,255,0.45), transparent),
+      radial-gradient(1px 1px at 55% 82%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 10% 55%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 92% 72%, rgba(255,255,255,0.4), transparent);
+    background-size: 460px 460px;
+    animation: drift 240s linear infinite;
+  }
+  .stars--near {
+    background-image:
+      radial-gradient(1.5px 1.5px at 30% 38%, rgba(255,255,255,0.95), transparent),
+      radial-gradient(1.5px 1.5px at 80% 14%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1.3px 1.3px at 62% 60%, rgba(255,255,255,0.85), transparent),
+      radial-gradient(1.5px 1.5px at 14% 78%, rgba(255,255,255,0.75), transparent);
+    background-size: 660px 660px;
+    animation: drift 160s linear infinite reverse;
+  }
+  @keyframes drift {
+    from { transform: translateY(0); }
+    to { transform: translateY(-460px); }
+  }
+  :global([data-theme='light']) .hero__sky { opacity: 0; }
+  .hero:not([data-hero-mode='css']) .hero__sky,
+  .hero:not([data-hero-mode='css']) .hero__lights { display: none; }
+
+  /* ---- CSS limb ---- */
+  .hero__earth { position: absolute; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
+  .fallback { position: absolute; inset: 0; transition: opacity 0.6s var(--ease); }
+  .earth__globe {
+    position: absolute;
+    left: 50%; top: 70vh;
+    width: 320vw; aspect-ratio: 1;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side at 50% 40%, #10151c 0%, #0a0e14 55%, #05070a 100%);
+  }
+  .earth__globe::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    border-top: 2px solid rgba(255, 158, 96, 0.85); filter: blur(0.6px);
+  }
+  .earth__globe::after {
+    content: ''; position: absolute; inset: -8px; border-radius: 50%;
+    border-top: 10px solid rgba(var(--glow), 0.4); filter: blur(12px);
+  }
+  .earth__glow {
+    position: absolute;
+    left: 50%; top: 70vh;
+    width: 150vw; height: 42vh;
+    transform: translate(-50%, -100%);
+    background: radial-gradient(60% 100% at 50% 100%,
+      rgba(var(--glow), 0.16) 0%, rgba(120, 160, 255, 0.05) 45%, transparent 72%);
+    filter: blur(8px);
+  }
+  :global([data-theme='light']) .hero[data-hero-mode='css'] .earth__globe {
+    background: radial-gradient(closest-side at 50% 40%, #cfdae6 0%, #a9bacd 55%, #8397ae 100%);
+  }
+  :global([data-theme='light']) .hero[data-hero-mode='css'] .earth__globe::before { border-top-color: rgba(255, 255, 255, 0.9); }
+
+  /* ---- City lights (css hero) ---- */
+  .hero__lights { position: absolute; inset: 0; z-index: -1; pointer-events: none; transition: opacity 0.6s var(--ease); }
+  .citylight {
+    position: absolute; border-radius: 50%;
+    background: #ffd9a8;
+    box-shadow: 0 0 5px 1px rgba(var(--glow), 0.9), 0 0 2px rgba(255, 220, 170, 0.9);
+    transform: translate(-50%, -50%);
+    animation: twinkle 5s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(0.5); } }
+
+  /* ---- Photo media (horizon) ---- */
+  .hero__media {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: 50% 42%;
+    opacity: 0;
+    transition: opacity 0.9s var(--ease);
+    z-index: -2;
+  }
+  .hero__media.is-ready { opacity: 1; }
+  /* once the photo is up, retire the CSS fallback beneath it */
+  .hero[data-media] .fallback { opacity: 0; }
+
+  /* legibility scrim over the photo */
+  .hero__scrim {
+    position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      linear-gradient(95deg, rgba(4,6,10,0.86) 0%, rgba(4,6,10,0.55) 32%, rgba(4,6,10,0.05) 60%),
+      linear-gradient(to top, rgba(4,6,10,0.7) 0%, transparent 34%);
+  }
+
+  /* ---- Content ---- */
+  .hero__content { position: relative; z-index: 1; padding-top: 3rem; }
+  .coord { font-variant-numeric: tabular-nums; }
+  /* explicit color so it re-evaluates --ink at the hero scope (readable over the photo) */
+  .hero__title { margin-top: var(--space-s); margin-bottom: var(--space-m); color: var(--ink); }
+  .hero__title span { display: inline-block; }
+  .hero__lede { font-size: var(--step-1); color: var(--muted); line-height: 1.5; max-width: 42ch; }
+  /* only un-classed <strong> takes ink; hl-energy/hl-climate keep their accent */
+  .hero__lede strong:not([class]) { color: var(--ink); font-weight: 560; }
+  .hero__actions { display: flex; flex-wrap: wrap; gap: var(--space-s); margin-top: var(--space-l); }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.02em;
+    padding: 0.7rem 1.15rem; border-radius: var(--radius); border: 1px solid transparent;
+    transition: transform 0.2s var(--ease), background 0.2s var(--ease),
+      border-color 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .btn--primary {
+    background: var(--energy); color: #1a0d05; font-weight: 600;
+    box-shadow: 0 6px 24px -8px rgba(var(--glow), 0.7);
+  }
+  .btn--primary:hover { transform: translateY(-2px); }
+  .btn--ghost { border-color: var(--line-strong); color: var(--ink); }
+  .btn--ghost:hover { border-color: var(--energy); color: var(--energy-ink); }
+
+  /* ---- Scroll cue ---- */
+  .hero__scroll {
+    position: absolute; left: 50%; bottom: 1.8rem; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem; z-index: 1;
+  }
+  .hero__scrollline {
+    width: 1px; height: 42px; background: linear-gradient(var(--energy), transparent);
+    animation: scrollpulse 2.4s var(--ease) infinite; transform-origin: top;
+  }
+  @keyframes scrollpulse {
+    0% { transform: scaleY(0); opacity: 0; }
+    35% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1) translateY(42px); opacity: 0; }
+  }
+
+  /* ---- Media credit (corner) ---- */
+  .hero__credit {
+    position: absolute;
+    right: clamp(1.25rem, 5vw, 3rem);
+    bottom: 1.4rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.03em;
+    color: var(--faint);
+    opacity: 0.85;
+    transition: color 0.2s var(--ease), opacity 0.2s var(--ease);
+  }
+  .hero__credit:hover { color: var(--muted); opacity: 1; }
+  @media (max-width: 560px) {
+    .hero__credit { font-size: 0.6rem; right: 1rem; bottom: 1rem; }
+  }
+
+  /* ---- Load reveal ---- */
+  .reveal {
+    opacity: 0; transform: translateY(14px);
+    animation: reveal 0.9s var(--ease) forwards; animation-delay: var(--d, 0s);
+  }
+  @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 640px) {
+    .earth__globe { top: 74vh; width: 420vw; }
+    .hero__content { padding-top: 2rem; }
+  }
+</style>
+
+<script>
+  // Fade the photo in once it decodes; if it's missing, the CSS limb stays.
+  const hero = document.querySelector<HTMLElement>('.hero');
+  if (hero && hero.dataset.heroMode === 'horizon') {
+    const poster = hero.querySelector<HTMLImageElement>('.hero__media');
+    if (poster) {
+      const showPoster = () => {
+        poster.classList.add('is-ready');
+        hero.dataset.media = 'image';
+      };
+      if (poster.complete && poster.naturalWidth > 0) showPoster();
+      poster.addEventListener('load', showPoster);
+      poster.addEventListener('error', () => poster.remove());
+    }
+  }
+</script>
