@@ -50,7 +50,7 @@ export const ui = {
       'Most buildings are run by primitive rules deeply embedded in hardware. My research investigates ways to operate the existing building stock in more energy-efficient and grid-supportive ways using computational approaches. I focus on operation in the cloud, making use of <em>smart device</em> data and predictive algorithms to optimize operation.',
     // inline HTML: coloured span
     'about.body2':
-      'Before my PhD, I studied <span class="hl-compute">Computer Science</span> and <span class="hl-compute">Computational Science</span> and was active in the <span class="hl-climate">climate advocacy</span> scene, supporting education work on the climate solutions.',
+      'Before my PhD, I studied <span class="hl-compute">Computer Science and Computational Science</span> and was active in the <span class="hl-climate">climate advocacy</span> scene, supporting education work on climate solutions.',
     'about.facts.field': 'Field',
     'about.facts.fieldValue': 'Energy systems · Internet of Things · Control theory',
     'about.facts.methods': 'Methods',
@@ -182,7 +182,7 @@ export const ui = {
     'about.body1':
       'Die meisten Gebäude werden von primitiven Regeln gesteuert, die tief in der Hardware verankert sind. Meine Forschung untersucht, wie sich der bestehende Gebäudebestand mit rechnergestützten Ansätzen energieeffizienter und netzdienlicher betreiben lässt. Mein Fokus liegt auf dem Betrieb in der Cloud, wobei ich Daten von <em>smarten Geräten</em> und prädiktive Algorithmen nutze, um den Betrieb zu optimieren.',
     'about.body2':
-      'Vor meiner Promotion habe ich <span class="hl-compute">Informatik und Computational Science</span> studiert und war in der <span class="hl-climate">Klimabewegung</span> aktiv, wo ich Organisationen bei der Bildungsarbeit zu den zentralen Klimalösungen unterstützt habe.',
+      'Vor meiner Promotion habe ich <span class="hl-compute">Informatik und Computational Science</span> studiert und war in der <span class="hl-climate">Klimabewegung</span> aktiv, wo ich eine Organisation bei der Bildungsarbeit zu den zentralen Klimalösungen mit geleitet habe.',
     'about.facts.field': 'Fachgebiet',
     'about.facts.fieldValue': 'Energiesysteme · Internet der Dinge · Regelungstechnik',
     'about.facts.methods': 'Methoden',
