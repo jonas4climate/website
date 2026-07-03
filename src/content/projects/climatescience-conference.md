@@ -1,7 +1,7 @@
 ---
-title: ClimateScience Community Conference
+title: Community Conference
 tagline: Co-organising ClimateScience's first-ever virtual community conference — tens of events and several hundred registrations, with a team of seven.
-role: Co-organiser · ClimateScience
+role: Main Organiser · ClimateScience
 period: Jan — Feb 2022
 tags: ['event organisation', 'nonprofit', 'moderation']
 track: climate
