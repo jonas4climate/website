@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 
 // Custom domain (schaefer.earth) is served from the root, so `base` stays "/".
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
     format: 'directory',
   },
   // MDX lets project pages embed media components (galleries, PDF slideshows,
-  // video, diagrams) inline, alongside plain Markdown.
-  integrations: [mdx()],
+  // video, diagrams) inline, alongside plain Markdown. Sitemap generates
+  // /sitemap-index.xml from `site` (referenced by public/robots.txt).
+  integrations: [mdx(), sitemap()],
 });

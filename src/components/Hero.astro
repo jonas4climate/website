@@ -158,8 +158,11 @@ const lights = Array.from({ length: 64 }, (_, i) => {
     to { transform: translateY(-460px); }
   }
   :global([data-theme='light']) .hero__sky { opacity: 0; }
+  /* In image mode, don't show the CSS earth/stars/lights while the photo loads —
+     just the dark hero background, with the photo fading in over it. */
   .hero:not([data-hero-mode='css']) .hero__sky,
-  .hero:not([data-hero-mode='css']) .hero__lights { display: none; }
+  .hero:not([data-hero-mode='css']) .hero__lights,
+  .hero:not([data-hero-mode='css']) .hero__earth { display: none; }
 
   /* ---- CSS limb ---- */
   .hero__earth { position: absolute; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
