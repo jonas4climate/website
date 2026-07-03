@@ -242,7 +242,7 @@ const lights = Array.from({ length: 64 }, (_, i) => {
   .btn {
     display: inline-flex; align-items: center; gap: 0.5rem;
     font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.02em;
-    padding: 0.7rem 1.15rem; border-radius: var(--radius); border: 1px solid transparent;
+    padding: 0.7rem 1.15rem; border-radius: var(--radius); border: 2px solid transparent;
     transition: transform 0.2s var(--ease), background 0.2s var(--ease),
       border-color 0.2s var(--ease), color 0.2s var(--ease);
   }
@@ -255,8 +255,11 @@ const lights = Array.from({ length: 64 }, (_, i) => {
   .btn--ghost:hover { border-color: var(--energy); color: var(--energy-ink); }
 
   /* ---- Scroll cue ---- */
+  /* Centred with auto margins (not translateX) so the shared `.reveal` animation,
+     which drives `transform`, doesn't override the horizontal centring. */
   .hero__scroll {
-    position: absolute; left: 50%; bottom: 1.8rem; transform: translateX(-50%);
+    position: absolute; left: 0; right: 0; bottom: 1.8rem;
+    margin-inline: auto; width: max-content;
     display: flex; flex-direction: column; align-items: center; gap: 0.5rem; z-index: 1;
   }
   .hero__scrollline {
