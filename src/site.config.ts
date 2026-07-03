@@ -53,5 +53,5 @@ export interface ViewDefaults {
   mobile: TimelineView;
 }
 
-export const EXPERIENCE_VIEW: ViewDefaults = { desktop: 'table', mobile: 'timeline' };
+export const EXPERIENCE_VIEW: ViewDefaults = { desktop: 'timeline', mobile: 'timeline' };
 export const EDUCATION_VIEW: ViewDefaults = { desktop: 'timeline', mobile: 'timeline' };
