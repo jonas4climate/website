@@ -1,0 +1,97 @@
+---
+title: Particle simulation of coral growth
+tagline: Numerical solutions to PDEs — wave, diffusion, Laplace, reaction–diffusion — and modelling fractal coral growth with diffusion-limited aggregation.
+role: Group project · MSc Computational Science
+period: Feb — Mar 2024
+tags: ['numerical methods', 'PDEs', 'DLA', 'Python']
+track: compsci
+date: 2024-03
+href: 'https://github.com/jonas4climate/modelling-natural-processes'
+order: 4
+---
+
+import Diagram from '../../components/media/Diagram.astro';
+import Gallery from '../../components/media/Gallery.astro';
+import Video from '../../components/media/Video.astro';
+
+Solving classic partial differential equations numerically (wave, diffusion,
+Laplace, reaction–diffusion) and using
+[diffusion-limited aggregation](https://www.sciencedirect.com/topics/mathematics/diffusion-limited-aggregation)
+to model the fractal growth of coral.
+
+## Solving classic PDEs
+
+Finite-difference schemes for the time-dependent wave and diffusion equations,
+and iterative solvers (Jacobi, Gauss–Seidel, SOR) for the steady-state Laplace
+equation.
+
+<Gallery
+  columns={2}
+  images={[
+    { src: '/media/group-coral-growth/wave_equation.png', alt: 'Wave amplitude snapshots', caption: 'Wave equation: amplitude snapshots for three initial conditions.' },
+    { src: '/media/group-coral-growth/diffusion_times.png', alt: '2D diffusion snapshots', caption: '2D diffusion: concentration from t = 0 to steady state.' },
+    { src: '/media/group-coral-growth/laplace_convergence.png', alt: 'Iterative solver convergence', caption: 'Laplace solvers: Jacobi vs Gauss–Seidel vs SOR convergence.' },
+    { src: '/media/group-coral-growth/laplace_comparison.png', alt: 'Laplace solver error and iterations', caption: 'Solution error and iterations-to-converge across the three methods.' },
+  ]}
+/>
+
+## Diffusion-limited aggregation — growing coral
+
+The headline model: random-walking particles that stick on contact grow a
+branching, self-similar fractal — a simple mechanism for coral-like structures.
+
+<Video
+  gif
+  src="/media/group-coral-growth/dla_growth.mp4"
+  caption="Diffusion-limited aggregation: random walkers stick on contact, growing a branching cluster from the seed."
+/>
+
+<Diagram
+  light
+  src="/media/group-coral-growth/dla_final.png"
+  alt="Final DLA aggregate over the nutrient concentration field."
+  caption="A finished aggregate (white) grown in the nutrient field solved from the Laplace equation, with growth exponent η = 1.5 setting how strongly growth follows the local gradient."
+/>
+
+<Gallery
+  columns={2}
+  images={[
+    { src: '/media/group-coral-growth/sor_omega.png', alt: 'SOR relaxation factor tuning', caption: 'Tuning the SOR relaxation factor ω for fastest convergence.' },
+    { src: '/media/group-coral-growth/runtime_comparison.png', alt: 'Serial vs parallel SOR runtime', caption: 'Serial vs parallel SOR runtime against grid size N.' },
+  ]}
+/>
+
+## Reaction–diffusion patterns (Gray–Scott)
+
+Two chemicals reacting and diffusing at different rates self-organise into
+stable spatial patterns from an almost uniform start.
+
+<Gallery
+  columns={2}
+  images={[
+    { src: '/media/group-coral-growth/gray_scott_start.png', alt: 'Gray–Scott initial condition', caption: 'Initial seed of the U and V fields (t = 0).' },
+    { src: '/media/group-coral-growth/gray_scott_end.png', alt: 'Gray–Scott converged pattern', caption: 'Labyrinthine patterns that emerge by t = 8000.' },
+  ]}
+/>
+
+## Eigenmodes of a vibrating membrane
+
+Discretising the Helmholtz eigenvalue problem turns a "drum" into a sparse
+matrix whose eigenvectors are its vibrational modes.
+
+<Video
+  gif
+  src="/media/group-coral-growth/drum_eigenmode.mp4"
+  caption="A vibrational eigenmode of a circular membrane, from the discretised eigenvalue problem."
+/>
+
+<Gallery
+  columns={2}
+  images={[
+    { src: '/media/group-coral-growth/fd_matrix.png', alt: 'Finite-difference matrix', caption: 'The finite-difference Laplacian as a sparse matrix (5×5 grid).' },
+    { src: '/media/group-coral-growth/eigfreqs_distribution.png', alt: 'Eigenfrequency distribution', caption: 'The eigenfrequency spectrum sharpens as the discretisation N is refined.' },
+    { src: '/media/group-coral-growth/drum_time_memory.png', alt: 'Dense vs sparse solver cost', caption: 'Dense vs sparse eigensolvers: solve time and memory against grid size.' },
+  ]}
+/>
+
+Code and details [on GitHub](https://github.com/jonas4climate/modelling-natural-processes).

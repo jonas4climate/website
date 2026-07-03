@@ -30,6 +30,3 @@ a time.
 Buildings that can shift *when* they use energy are a resource for a renewable
 grid. Using the generated models, I studied how much demand-side flexibility
 multi-zone buildings offer and how different control strategies unlock it.
-
-> Placeholder detail — expand with concrete results, figures, and a link to the
-> thesis when it's available.

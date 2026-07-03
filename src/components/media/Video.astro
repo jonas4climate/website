@@ -4,6 +4,7 @@
 //   <Video src="/media/thesis/demo.mp4" poster="/media/thesis/demo.jpg" caption="Control demo" />
 //   <Video youtube="dQw4w9WgXcQ" caption="Talk recording" />
 //   <Video vimeo="76979871" />
+//   <Video src="/media/x/sim.mp4" gif caption="Silent looping animation (a GIF replacement)" />
 interface Props {
   /** Path/URL to a video file (mp4/webm). */
   src?: string;
@@ -13,8 +14,19 @@ interface Props {
   vimeo?: string;
   poster?: string;
   caption?: string;
+  /** Shorthand for a GIF-style clip: autoplay + loop + muted, no controls. */
+  gif?: boolean;
+  autoplay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
+  controls?: boolean;
 }
-const { src, youtube, vimeo, poster, caption } = Astro.props;
+const { src, youtube, vimeo, poster, caption, gif = false } = Astro.props;
+// `gif` presets autoplay/loop/muted/no-controls; individual props still override.
+const autoplay = Astro.props.autoplay ?? gif;
+const loop = Astro.props.loop ?? gif;
+const muted = Astro.props.muted ?? gif;
+const controls = Astro.props.controls ?? !gif;
 
 // Accept either a bare id or a full URL for the embed providers.
 function ytId(v: string) {
@@ -46,7 +58,15 @@ const embed = youtube
       ></iframe>
     </div>
   ) : src ? (
-    <video controls preload="metadata" poster={poster} playsinline>
+    <video
+      controls={controls}
+      autoplay={autoplay}
+      loop={loop}
+      muted={muted}
+      playsinline
+      preload={autoplay ? 'auto' : 'metadata'}
+      poster={poster}
+    >
       <source src={src} />
       Your browser can’t play this video. <a href={src}>Download it</a> instead.
     </video>

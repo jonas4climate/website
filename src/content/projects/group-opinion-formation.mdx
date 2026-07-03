@@ -1,0 +1,50 @@
+---
+title: Complexity in opinion formation
+tagline: Simulating opinion formation under social impact theory, analysing critical temperature, self-organised criticality and unification processes.
+role: Group project · MSc Computational Science
+period: Jan — Feb 2024
+tags: ['complex systems', 'simulation', 'Python']
+track: compsci
+date: 2024-02
+href: 'https://github.com/jonas4climate/complex-systems-project'
+order: 5
+---
+
+import Video from '../../components/media/Video.astro';
+import PdfSlides from '../../components/media/PdfSlides.astro';
+
+A study of how opinions form and spread in social structures, following
+[social impact theory](https://psycnet.apa.org/record/1982-01296-001). We analysed
+critical temperature, self-organised criticality, and the conditions under which
+opinions unify.
+
+The full models, methods and results are summarised in the project presentation:
+
+<PdfSlides
+  src="/media/group-opinion-formation/presentation.pdf"
+  caption="Complex Systems project presentation — ‹ › or arrow keys to move through the slides."
+/>
+
+## Simulations in motion
+
+A few of the dynamics behind the results:
+
+<Video
+  gif
+  src="/media/group-opinion-formation/oscillations.mp4"
+  caption="A central leader drives periodic oscillations of the agreeing cluster at intermediate temperature."
+/>
+
+<Video
+  gif
+  src="/media/group-opinion-formation/soc.mp4"
+  caption="Avalanches of opinion change at the critical temperature — self-organised criticality."
+/>
+
+<Video
+  gif
+  src="/media/group-opinion-formation/unification.mp4"
+  caption="A leader unifying a networked population near the critical temperature."
+/>
+
+Code and details [on GitHub](https://github.com/jonas4climate/complex-systems-project).

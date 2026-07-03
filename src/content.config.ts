@@ -66,7 +66,11 @@ const education = defineCollection({
     location: z.string().optional(),
     kind: z.enum(['degree', 'certificate', 'course']).default('degree'),
     note: z.string().optional(),            // grade, thesis, honours, one line
-    href: z.string().url().optional(),      // link to certificate / programme
+    // external URL or a site-relative path (e.g. an uploaded certificate PDF in /public)
+    href: z
+      .string()
+      .refine((v) => v.startsWith('/') || /^https?:\/\//.test(v), 'Use a URL or a "/..." path')
+      .optional(),
     order: z.number().default(0),
   }),
 });
