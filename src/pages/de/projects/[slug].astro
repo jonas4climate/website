@@ -1,12 +1,12 @@
 ---
-import ProjectDetail from '../../components/pages/ProjectDetail.astro';
-import { entriesFor, slugOf } from '../../i18n/utils';
+import ProjectDetail from '../../../components/pages/ProjectDetail.astro';
+import { entriesFor, slugOf } from '../../../i18n/utils';
 
 export async function getStaticPaths() {
-  const projects = (await entriesFor('projects', 'en')).sort(
+  const projects = (await entriesFor('projects', 'de')).sort(
     (a, b) => b.data.date.localeCompare(a.data.date) || a.data.order - b.data.order,
   );
-  // prev/next stay within the same track (and, implicitly, the same locale)
+  // prev/next stay within the same track (and locale — these are the German entries)
   return projects.map((project) => {
     const siblings = projects.filter((p) => p.data.track === project.data.track);
     const i = siblings.findIndex((p) => p.id === project.id);
@@ -24,4 +24,4 @@ export async function getStaticPaths() {
 const { project, prev, next } = Astro.props;
 ---
 
-<ProjectDetail lang="en" project={project} prev={prev} next={next} />
+<ProjectDetail lang="de" project={project} prev={prev} next={next} />

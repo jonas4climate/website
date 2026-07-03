@@ -1,0 +1,167 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../Nav.astro';
+import { entriesFor, useTranslations, localizedPath, slugOf } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Chronological (newest first) within each track.
+const all = (await entriesFor('projects', lang)).sort(
+  (a, b) => b.data.date.localeCompare(a.data.date) || a.data.order - b.data.order,
+);
+const itemsOf = (t: string) => all.filter((p) => p.data.track === t);
+
+const tracks = [
+  {
+    key: 'energy',
+    idx: t('track.energy.idx'),
+    title: t('track.energy.title'),
+    blurb: t('track.energy.blurb'),
+    items: itemsOf('energy'),
+  },
+  {
+    key: 'compsci',
+    idx: t('track.compsci.idx'),
+    title: t('track.compsci.title'),
+    blurb: t('track.compsci.blurb'),
+    items: itemsOf('compsci'),
+  },
+  {
+    key: 'climate',
+    idx: t('track.climate.idx'),
+    title: t('track.climate.title'),
+    blurb: t('track.climate.blurb'),
+    items: itemsOf('climate'),
+  },
+];
+---
+
+<Layout lang={lang} title={t('meta.projectsTitle')} description={t('meta.projectsDesc')}>
+  <Nav lang={lang} />
+  <main class="allprojects">
+    <div class="container allprojects__inner">
+      <a class="backlink" href={localizedPath('/#projects', lang)}><span aria-hidden="true">←</span> {t('projectsPage.backHome')}</a>
+
+      <header class="ap-head">
+        <p class="label label--energy">{t('projectsPage.label')}</p>
+        <h1>{t('projectsPage.heading')}</h1>
+        <p class="ap-sub text-muted" set:html={t('projectsPage.sub')} />
+      </header>
+
+      {tracks.map((track) => (
+        <section class={`ap-track track--${track.key}`} aria-label={track.title}>
+          <div class="ap-track__head">
+            <span class="idx ap-track__idx">{track.idx}</span>
+            <h2>{track.title}</h2>
+            <p class="ap-track__blurb text-muted">{track.blurb}</p>
+          </div>
+          <div class="ap-grid">
+            {track.items.map((p) => (
+              <a class="ap-card" href={localizedPath(`/projects/${slugOf(p.id)}`, lang)}>
+                <div class="ap-card__top">
+                  <h3>{p.data.title}</h3>
+                  {p.data.period && <span class="label ap-card__period">{p.data.period}</span>}
+                </div>
+                <p class="ap-card__tagline text-muted">{p.data.tagline}</p>
+                <ul class="tags">{p.data.tags.map((t) => <li>{t}</li>)}</ul>
+                <span class="ap-card__more label">{t('card.readMore')}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <span class="label">© 2026 Jonas Schäfer</span>
+        <a class="label" href={localizedPath('/#top', lang)}>schaefer.earth</a>
+      </div>
+      <p class="footer__note">{t('footer.note')}</p>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  .allprojects { padding-top: 8rem; padding-bottom: var(--space-2xl); }
+  .allprojects__inner { max-width: 62rem; }
+
+  .backlink {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--font-mono); font-size: var(--step--1);
+    color: var(--muted); transition: color 0.2s var(--ease);
+  }
+  .backlink:hover { color: var(--energy-ink); }
+
+  .ap-head { margin-top: var(--space-l); margin-bottom: var(--space-2xl); }
+  .ap-head h1 { font-size: var(--step-3); margin: var(--space-s) 0; }
+  .ap-sub { max-width: 52ch; }
+  /* :global — the subheading is injected via set:html (from the i18n dict), so
+     Astro's scoping hash isn't applied to those <strong> tags; without :global
+     the accent colours wouldn't match. */
+  :global(.t-compsci) { color: var(--compute-ink); font-weight: 560; }
+  :global(.t-energy) { color: var(--energy-ink); font-weight: 560; }
+  :global(.t-climate) { color: var(--earth-ink); font-weight: 560; }
+
+  /* per-track accent */
+  .track--compsci { --track-ink: var(--compute-ink); --track-glow: var(--compute-glow); }
+  .track--energy { --track-ink: var(--energy-ink); --track-glow: var(--glow); }
+  .track--climate { --track-ink: var(--earth-ink); --track-glow: var(--earth-glow); }
+
+  .ap-track { margin-bottom: var(--space-3xl); }
+  .ap-track__head {
+    margin-bottom: var(--space-l);
+    padding-left: var(--space-m);
+    border-left: 2px solid var(--track-ink);
+  }
+  .ap-track__idx { color: var(--track-ink); }
+  .ap-track__head h2 { margin: 0.3rem 0 0.4rem; }
+  .ap-track__blurb { max-width: 46ch; }
+
+  .ap-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-m); }
+  .ap-card { min-width: 0; }  /* allow cards to shrink so long content can't overrun the grid */
+  .ap-card {
+    position: relative; display: block; padding: var(--space-l);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+  .ap-card::after {
+    content: ''; position: absolute; inset: auto -40% -60% auto; width: 55%; height: 55%;
+    background: radial-gradient(closest-side, rgba(var(--track-glow), 0.12), transparent 70%);
+    opacity: 0; transition: opacity 0.3s var(--ease); pointer-events: none;
+  }
+  .ap-card:hover {
+    border-color: color-mix(in oklab, var(--track-ink) 40%, var(--line-strong));
+    transform: translateY(-3px);
+  }
+  .ap-card:hover::after { opacity: 1; }
+  .ap-card__top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-s); }
+  .ap-card__period { color: var(--faint); white-space: nowrap; }
+  .ap-card__tagline { font-size: var(--step--1); line-height: 1.55; margin-top: 0.5rem; }
+  .ap-card__more {
+    display: inline-block; margin-top: var(--space-m); color: var(--track-ink);
+    opacity: 0; transform: translateX(-4px);
+    transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+  .ap-card:hover .ap-card__more, .ap-card:focus-visible .ap-card__more { opacity: 1; transform: translateX(0); }
+  @media (hover: none) { .ap-card__more { opacity: 1; transform: none; } }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin-top: var(--space-m); }
+  .tags li {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted);
+    padding: 0.2rem 0.5rem; border: 1px solid var(--line); border-radius: var(--radius);
+  }
+
+  @media (max-width: 640px) {
+    .allprojects { padding-top: 6rem; }
+    .ap-grid { grid-template-columns: 1fr; }
+  }
+</style>

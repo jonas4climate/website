@@ -1,0 +1,772 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../Nav.astro';
+import Hero from '../Hero.astro';
+import { PROJECTS_LAYOUT, EXPERIENCE_VIEW, EDUCATION_VIEW } from '../../site.config';
+import { entriesFor, useTranslations, localizedPath, slugOf } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Newest first within each track; the most recent surface in the previews.
+const allProjects = (await entriesFor('projects', lang)).sort(
+  (a, b) => b.data.date.localeCompare(a.data.date) || a.data.order - b.data.order,
+);
+// The homepage previews a few projects per track; the rest live on /projects/.
+// Layout (see site.config.ts) decides the column arrangement. Each rendered
+// column is an array of track-blocks that stack vertically.
+const topN = (t: string, n: number) =>
+  allProjects.filter((p) => p.data.track === t).slice(0, n);
+const LABELS: Record<string, string> = {
+  energy: t('track.energy.label'),
+  compsci: t('track.compsci.label'),
+  climate: t('track.climate.label'),
+};
+const block = (key: string, n: number) => ({ key, label: LABELS[key], items: topN(key, n) });
+const projectColumns =
+  PROJECTS_LAYOUT === 'energy-focus'
+    ? [[block('energy', 2)], [block('compsci', 1), block('climate', 1)]]
+    : [[block('energy', 2)], [block('compsci', 2)], [block('climate', 2)]];
+const trackColCount = projectColumns.length;
+const shownCount = projectColumns.flat().reduce((n, b) => n + b.items.length, 0);
+const hasMoreProjects = allProjects.length > shownCount;
+
+const experience = (await entriesFor('experience', lang)).sort(
+  (a, b) => b.data.year - a.data.year || a.data.order - b.data.order,
+);
+
+const research = (await entriesFor('research', lang)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const education = (await entriesFor('education', lang)).sort(
+  (a, b) => b.data.year - a.data.year || a.data.order - b.data.order,
+);
+
+// bold the author's own name in a citation string
+function markAuthor(authors: string) {
+  return authors.replace(/(Schäfer, ?J\.?)/g, '<strong>$1</strong>');
+}
+---
+
+<Layout lang={lang} title={t('meta.homeTitle')} description={t('meta.homeDesc')}>
+  <Nav lang={lang} />
+  <main>
+    <Hero lang={lang} />
+
+    <!-- ================= ABOUT ================= -->
+    <hr class="limb" />
+    <section id="about" class="section">
+      <div class="container about">
+        <div class="about__head">
+          <p class="label">
+            <span class="idx-dot"></span> {t('about.label')}
+          </p>
+        </div>
+        <div class="about__body">
+          <p class="about__lead" set:html={t('about.lead')} />
+          <div class="prose text-muted about__detail">
+            <p set:html={t('about.body1')} />
+            <p set:html={t('about.body2')} />
+          </div>
+          <dl class="facts">
+            <div><dt class="label">{t('about.facts.field')}</dt><dd>{t('about.facts.fieldValue')}</dd></div>
+            <div><dt class="label">{t('about.facts.methods')}</dt><dd>{t('about.facts.methodsValue')}</dd></div>
+            <div><dt class="label">{t('about.facts.basedIn')}</dt><dd>{t('about.facts.basedInValue')}</dd></div>
+            <div><dt class="label">{t('about.facts.languages')}</dt><dd>{t('about.facts.languagesValue')}</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RESEARCH ================= -->
+    <hr class="limb" />
+    <section id="research" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">{t('research.idx')}</span>
+          <h2>{t('research.heading')}</h2>
+        </div>
+        {research.length === 0 && (
+          <p class="pubs-empty">
+            <span class="label label--energy">{t('research.emptyBadge')}</span>
+            {t('research.emptyText')}
+          </p>
+        )}
+        <ol class="pubs">
+          {research.map((p) => (
+            <li class="pub">
+              <div class="pub__year label">{p.data.year}</div>
+              <div class="pub__main">
+                <h3 class="pub__title">{p.data.title}</h3>
+                <p class="pub__meta">
+                  <span set:html={markAuthor(p.data.authors)} />
+                  <span class="pub__venue"> · <em>{p.data.venue}</em></span>
+                </p>
+                <div class="pub__foot">
+                  <span class={`chip chip--${p.data.status.replace(/\s/g, '-')}`}>
+                    {t(`status.${p.data.status}` as any)}
+                  </span>
+                  {p.data.links.map((l) => (
+                    <a class="pub__link" href={l.href} target="_blank" rel="noopener">
+                      {l.label} <span aria-hidden="true">↗</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= PROJECTS ================= -->
+    <hr class="limb" />
+    <section id="projects" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">{t('projects.idx')}</span>
+          <h2>{t('projects.heading')}</h2>
+        </div>
+        <div class={`tracks tracks--${trackColCount}`}>
+          {projectColumns.map((group) => (
+            <div class="track-col__group">
+              {group.map((b) => (
+                <div class={`track-col track-col--${b.key}`}>
+                  <div class="track-col__head">
+                    <span class="track-col__label label">{b.label}</span>
+                  </div>
+                  <div class="track-col__cards">
+                    {b.items.map((p) => (
+                      <a class={`card card--${p.data.track}`} href={localizedPath(`/projects/${slugOf(p.id)}`, lang)}>
+                        <div class="card__body">
+                          <div class="card__topline">
+                            <h3>{p.data.title}</h3>
+                            {p.data.period && <span class="card__period label">{p.data.period}</span>}
+                          </div>
+                          <p class="card__tagline text-muted">{p.data.tagline}</p>
+                          <ul class="tags">
+                            {p.data.tags.map((t) => <li>{t}</li>)}
+                          </ul>
+                          <span class="card__more label">{t('card.readMore')}</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        {hasMoreProjects && (
+          <div class="projects__more">
+            <a class="link" href={localizedPath('/projects/', lang)}>{t('projects.browseAll')}</a>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- ================= EXPERIENCE ================= -->
+    <hr class="limb" />
+    <section id="experience" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">{t('experience.idx')}</span>
+          <h2>{t('experience.heading')}</h2>
+          <div
+            class="viewtoggle"
+            role="group"
+            aria-label={t('experience.viewAria')}
+            data-default-desktop={EXPERIENCE_VIEW.desktop}
+            data-default-mobile={EXPERIENCE_VIEW.mobile}
+          >
+            <button type="button" class="viewtoggle__btn" data-view="table" aria-pressed={String(EXPERIENCE_VIEW.desktop === 'table')}>{t('view.table')}</button>
+            <button type="button" class="viewtoggle__btn" data-view="timeline" aria-pressed={String(EXPERIENCE_VIEW.desktop === 'timeline')}>{t('view.timeline')}</button>
+            <button type="button" class="viewtoggle__btn" data-view="line" aria-pressed={String(EXPERIENCE_VIEW.desktop === 'line')}>{t('view.line')}</button>
+          </div>
+        </div>
+        <ol class="exp tl" data-view={EXPERIENCE_VIEW.desktop}>
+          {experience.map((e) => (
+            <li class="exp__item tl-item">
+              <div class="exp__year label tl-date">{e.data.period}</div>
+              <div class="exp__main">
+                <h3 class="exp__role tl-title">{e.data.role}</h3>
+                <p class="exp__org tl-sub">
+                  {e.data.organization}
+                  {e.data.location && <span class="exp__loc"> · {e.data.location}</span>}
+                </p>
+                {e.data.summary && <p class="exp__summary text-muted tl-extra">{e.data.summary}</p>}
+                {e.data.points.length > 0 && (
+                  <ul class="exp__points text-muted tl-extra">
+                    {e.data.points.map((pt) => <li>{pt}</li>)}
+                  </ul>
+                )}
+                <div class="exp__foot tl-extra">
+                  <span class={`chip chip--${e.data.kind}`}>{t(`kind.${e.data.kind}` as any)}</span>
+                  {e.data.href && (
+                    <a class="pub__link" href={e.data.href} target="_blank" rel="noopener">
+                      {t('experience.details')} <span aria-hidden="true">↗</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= EDUCATION ================= -->
+    <hr class="limb" />
+    <section id="education" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">{t('education.idx')}</span>
+          <h2>{t('education.heading')}</h2>
+          <div
+            class="viewtoggle"
+            role="group"
+            aria-label={t('education.viewAria')}
+            data-default-desktop={EDUCATION_VIEW.desktop}
+            data-default-mobile={EDUCATION_VIEW.mobile}
+          >
+            <button type="button" class="viewtoggle__btn" data-view="table" aria-pressed={String(EDUCATION_VIEW.desktop === 'table')}>{t('view.table')}</button>
+            <button type="button" class="viewtoggle__btn" data-view="timeline" aria-pressed={String(EDUCATION_VIEW.desktop === 'timeline')}>{t('view.timeline')}</button>
+            <button type="button" class="viewtoggle__btn" data-view="line" aria-pressed={String(EDUCATION_VIEW.desktop === 'line')}>{t('view.line')}</button>
+          </div>
+        </div>
+        <ol class="edu tl" data-view={EDUCATION_VIEW.desktop}>
+          {education.map((e) => (
+            <li class="edu__item tl-item">
+              <div class="edu__year label tl-date">{e.data.period}</div>
+              <div class="edu__main">
+                <h3 class="edu__cred tl-title">{e.data.credential}</h3>
+                <p class="edu__inst tl-sub">
+                  {e.data.institution}
+                  {e.data.location && <span class="edu__loc"> · {e.data.location}</span>}
+                </p>
+                {e.data.field && <p class="edu__field text-muted tl-extra">{e.data.field}</p>}
+                {e.data.note && <p class="edu__note text-muted tl-extra">{e.data.note}</p>}
+                <div class="edu__foot tl-extra">
+                  <span class={`chip chip--${e.data.kind}`}>{t(`kind.${e.data.kind}` as any)}</span>
+                  {e.data.href && (
+                    <a class="pub__link" href={e.data.href} target="_blank" rel="noopener">
+                      {t('education.credential')} <span aria-hidden="true">↗</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= CONTACT ================= -->
+    <hr class="limb" />
+    <section id="contact" class="section section--contact">
+      <div class="container contact">
+        <p class="label label--energy">{t('contact.eyebrow')}</p>
+        <h2 class="contact__title">{t('contact.title')}</h2>
+        <div class="contact__links">
+          <a class="link" href="mailto:jonas[at]schaefer[dot]earth">jonas[at]schaefer[dot]earth</a>
+          <a class="link" href="https://github.com/jonas4climate" target="_blank" rel="noopener">GitHub</a>
+          <a class="link" href="https://www.linkedin.com/in/jonas-schaefer/" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer__inner">
+          <span class="label">© 2026 Jonas Schäfer</span>
+          <span class="label">schaefer.earth</span>
+        </div>
+        <p class="footer__note">{t('footer.note')}</p>
+      </div>
+    </footer>
+  </main>
+</Layout>
+
+<style>
+  main { position: relative; }
+
+  /* ---- About ---- */
+  .about {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: var(--space-l) var(--space-xl);
+  }
+  .about__head { position: sticky; top: 5rem; align-self: start; }
+  .idx-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--energy); margin-right: 0.5rem; vertical-align: middle;
+    box-shadow: 0 0 8px rgba(var(--glow), 0.7);
+  }
+  .about__body { max-width: var(--measure); }
+  .about__lead {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-m);
+  }
+  /* :global on the inner <em> — about.lead is injected via set:html, so the
+     emphasis tag doesn't carry the scope hash. */
+  .about__lead :global(em) { color: var(--energy-ink); font-style: normal; }
+  .about__detail p + p { margin-top: var(--space-s); }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: var(--space-m);
+    margin-top: var(--space-l);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .facts dt { margin-bottom: 0.35rem; }
+  .facts dd { font-size: var(--step--1); color: var(--ink); }
+
+  /* ---- Publications ---- */
+  .pubs { list-style: none; padding: 0; }
+  .pub {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .pub:last-child { border-bottom: 1px solid var(--line); }
+  .pub__year { padding-top: 0.3rem; color: var(--faint); }
+  .pub__title { margin-bottom: 0.4rem; }
+  .pub__meta { color: var(--muted); font-size: var(--step--1); }
+  .pub__meta :global(strong) { color: var(--ink); font-weight: 600; }
+  .pub__foot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s);
+    margin-top: 0.75rem;
+  }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    color: var(--muted);
+  }
+  .chip--published { color: var(--success); border-color: color-mix(in oklab, var(--success) 50%, transparent); }
+  .chip--in-review { color: var(--energy-ink); border-color: color-mix(in oklab, var(--energy) 45%, transparent); }
+  .pub__link {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--muted);
+    transition: color 0.2s var(--ease);
+  }
+  .pub__link:hover { color: var(--energy-ink); }
+  .pubs-empty {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s);
+    color: var(--muted); font-size: var(--step-0);
+    padding-block: var(--space-m);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .chip--degree { color: var(--ink); border-color: var(--line-strong); }
+  .chip--certificate { color: var(--award); border-color: color-mix(in oklab, var(--award) 55%, transparent); }
+  .chip--course { color: var(--muted); }
+  /* experience kinds */
+  .chip--research { color: var(--energy-ink); border-color: color-mix(in oklab, var(--energy) 45%, transparent); }
+  .chip--engineering { color: var(--compute-ink); border-color: color-mix(in oklab, var(--compute-ink) 45%, transparent); }
+  .chip--nonprofit { color: var(--earth-ink); border-color: color-mix(in oklab, var(--earth) 45%, transparent); }
+  .chip--internship { color: var(--success); border-color: color-mix(in oklab, var(--success) 45%, transparent); }
+  .chip--freelance { color: var(--muted); border-color: var(--line-strong); }
+
+  /* ---- Experience (mirrors the education table layout) ---- */
+  .exp { list-style: none; padding: 0; }
+  .exp__item {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .exp__item:last-child { border-bottom: 1px solid var(--line); }
+  .exp__year { padding-top: 0.3rem; color: var(--faint); white-space: nowrap; }
+  .exp__role { margin-bottom: 0.25rem; }
+  .exp__org { font-size: var(--step-0); }
+  .exp__loc { color: var(--muted); }
+  .exp__summary { font-size: var(--step--1); margin-top: 0.35rem; }
+  .exp__points {
+    margin-top: 0.5rem;
+    padding-left: 1.1rem;
+    font-size: var(--step--1);
+    line-height: 1.55;
+  }
+  .exp__points li + li { margin-top: 0.25rem; }
+  .exp__points li::marker { color: var(--energy); }
+  .exp__foot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s);
+    margin-top: 0.6rem;
+  }
+
+  /* ---- Education view toggle ---- */
+  .viewtoggle {
+    margin-left: auto;
+    align-self: center;
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+  .viewtoggle__btn {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.32rem 0.7rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .viewtoggle__btn:hover { color: var(--ink); }
+  .viewtoggle__btn[aria-pressed='true'] {
+    background: color-mix(in oklab, var(--energy) 22%, transparent);
+    color: var(--energy-ink);
+  }
+
+  /* ---- Education (table view — default) ---- */
+  .edu { list-style: none; padding: 0; }
+  .edu__item {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .edu__item:last-child { border-bottom: 1px solid var(--line); }
+  .edu__year { padding-top: 0.3rem; color: var(--faint); white-space: nowrap; }
+  .edu__cred { margin-bottom: 0.25rem; }
+  .edu__inst { font-size: var(--step-0); }
+  .edu__loc { color: var(--muted); }
+  .edu__field, .edu__note { font-size: var(--step--1); margin-top: 0.2rem; }
+  .edu__foot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s);
+    margin-top: 0.6rem;
+  }
+
+  /* ---- Shared timeline / line views (used by Education AND Experience) ----
+     Each list carries `.tl` plus a `data-view`; its rows carry `.tl-item`, and
+     the inner bits carry `.tl-date` / `.tl-title` / `.tl-sub`, with anything
+     that should hide in the compact line view marked `.tl-extra`. The default
+     (table) view keeps each section's own `.edu`/`.exp` grid styles. */
+
+  /* timeline view — vertical line with a dot per entry */
+  .tl[data-view='timeline'] { padding-left: 0.4rem; }
+  .tl[data-view='timeline'] .tl-item {
+    display: block;
+    border-top: none;
+    position: relative;
+    margin-left: 4px;
+    padding: 0 0 var(--space-l) 1.6rem;
+    border-left: 2px solid var(--line-strong);
+  }
+  .tl[data-view='timeline'] .tl-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0.3rem;
+  }
+  .tl[data-view='timeline'] .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 3px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--space);
+    border: 2px solid var(--energy);
+    box-shadow: 0 0 8px rgba(var(--glow), 0.5);
+  }
+  .tl[data-view='timeline'] .tl-date {
+    padding-top: 0;
+    margin-bottom: 0.35rem;
+    color: var(--energy-ink);
+  }
+
+  /* line view — a single horizontal rule with a dot per milestone; nodes read
+     newest → oldest (left → right). The row scrolls inside its own container,
+     so it never widens the page. */
+  .tl[data-view='line'] {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding: var(--space-2xs) 0 var(--space-s);
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .tl[data-view='line'] .tl-item {
+    position: relative;
+    flex: 0 0 13rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border: 0;
+    padding: 0 var(--space-xs);
+    scroll-snap-align: center;
+  }
+  /* the continuous line (each node draws its own segment; they abut) */
+  .tl[data-view='line'] .tl-item::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--line-strong);
+    z-index: 0;
+  }
+  /* don't let the rule float past the outer dots */
+  .tl[data-view='line'] .tl-item:first-child::before { left: 50%; }
+  .tl[data-view='line'] .tl-item:last-child::before { right: 50%; }
+  /* the milestone dot, sitting on the line */
+  .tl[data-view='line'] .tl-item::after {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--space);
+    border: 2px solid var(--energy);
+    box-shadow: 0 0 8px rgba(var(--glow), 0.5);
+    z-index: 1;
+  }
+  .tl[data-view='line'] .tl-date {
+    padding-top: 0;
+    margin-bottom: 1.9rem; /* clears the line so the title sits below it */
+    color: var(--energy-ink);
+    white-space: nowrap;
+  }
+  .tl[data-view='line'] .tl-title {
+    font-size: var(--step-0);
+    margin-bottom: 0.15rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .tl[data-view='line'] .tl-sub {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  /* keep the horizontal nodes compact */
+  .tl[data-view='line'] .tl-extra { display: none; }
+
+  /* ---- Projects: parallel track columns (2 or 3, per site config) ---- */
+  .tracks { display: grid; gap: var(--space-l); }
+  /* grid/flex children must be allowed to shrink below their content width,
+     otherwise a long title or tag can blow a column past the viewport edge */
+  .track-col__group, .track-col, .card { min-width: 0; }
+  .tracks--3 { grid-template-columns: repeat(3, 1fr); }
+  .tracks--2 { grid-template-columns: 1fr 1fr; }
+  /* a column can hold more than one stacked track-block (energy-focus layout) */
+  .track-col__group { display: flex; flex-direction: column; gap: var(--space-xl); }
+  .track-col--compsci { --track-ink: var(--compute-ink); --track-glow: var(--compute-glow); }
+  .track-col--energy { --track-ink: var(--energy-ink); --track-glow: var(--glow); }
+  .track-col--climate { --track-ink: var(--earth-ink); --track-glow: var(--earth-glow); }
+  .track-col__head {
+    padding-left: var(--space-s);
+    border-left: 2px solid var(--track-ink);
+    margin-bottom: var(--space-m);
+  }
+  .track-col__label { color: var(--track-ink); }
+  .track-col__cards { display: flex; flex-direction: column; gap: var(--space-m); }
+  /* stack columns when they get too narrow */
+  @media (max-width: 1000px) {
+    .tracks--3 { grid-template-columns: 1fr; gap: var(--space-xl); }
+  }
+  @media (max-width: 720px) {
+    .tracks--2 { grid-template-columns: 1fr; gap: var(--space-xl); }
+  }
+
+  /* ---- Project cards ---- */
+  .card {
+    /* track accent — compsci = violet, energy = orange, climate = green */
+    --track-ink: var(--energy-ink);
+    --track-glow: var(--glow);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+    padding: var(--space-l);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+    overflow: hidden;
+  }
+  .card--compsci { --track-ink: var(--compute-ink); --track-glow: var(--compute-glow); }
+  .card--energy { --track-ink: var(--energy-ink); --track-glow: var(--glow); }
+  .card--climate { --track-ink: var(--earth-ink); --track-glow: var(--earth-glow); }
+  .card::after {
+    content: '';
+    position: absolute; inset: auto -40% -60% auto;
+    width: 60%; height: 60%;
+    background: radial-gradient(closest-side, rgba(var(--track-glow), 0.12), transparent 70%);
+    opacity: 0; transition: opacity 0.3s var(--ease);
+    pointer-events: none;
+  }
+  .card:hover {
+    border-color: color-mix(in oklab, var(--track-ink) 40%, var(--line-strong));
+    transform: translateY(-3px);
+  }
+  .card:hover::after { opacity: 1; }
+  .card--wide { grid-column: span 2; flex-direction: row; align-items: stretch; }
+  .card--wide .card__body { flex: 1; }
+
+  .card__track {
+    display: block;
+    color: var(--track-ink);
+    margin-bottom: var(--space-s);
+  }
+
+  .card__metric {
+    display: flex; flex-direction: column; gap: 0.35rem;
+    padding-right: var(--space-l);
+    border-right: 1px solid var(--line);
+    justify-content: center;
+    min-width: 9rem;
+  }
+  .card:not(.card--wide) .card__metric {
+    border-right: 0; padding-right: 0;
+    flex-direction: row; align-items: baseline; gap: 0.6rem;
+  }
+  .card__metric-value {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--track-ink);
+    line-height: 1;
+  }
+  .card__metric-label { max-width: 12ch; line-height: 1.3; }
+
+  .card__topline {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: var(--space-s); margin-bottom: 0.6rem;
+  }
+  .card__period { color: var(--faint); white-space: nowrap; }
+  .card__tagline { font-size: var(--step--1); line-height: 1.55; }
+  .tags {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    list-style: none; padding: 0; margin-top: var(--space-m);
+  }
+  .tags li {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .card__more {
+    display: inline-block;
+    margin-top: var(--space-m);
+    color: var(--track-ink);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+  .card:hover .card__more,
+  .card:focus-visible .card__more { opacity: 1; transform: translateX(0); }
+  @media (hover: none) { .card__more { opacity: 1; transform: none; } }
+  .projects__more { margin-top: var(--space-l); }
+
+  /* ---- Contact ---- */
+  .section--contact { padding-block: var(--space-3xl); text-align: center; }
+  .contact__title {
+    margin: var(--space-s) auto var(--space-l);
+    max-width: 18ch;
+  }
+  .contact__links {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: var(--space-m);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+
+  /* ---- Footer ---- */
+  .footer { border-top: 1px solid var(--line); padding-block: var(--space-l); }
+  .footer__inner { display: flex; justify-content: space-between; gap: var(--space-m); flex-wrap: wrap; }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 780px) {
+    .about { grid-template-columns: 1fr; }
+    .about__head { position: static; }
+    .facts { grid-template-columns: 1fr; gap: var(--space-s); }
+    .pub { grid-template-columns: 1fr; gap: 0.4rem; }
+    .pub__year { padding-top: 0; }
+    .edu__item { grid-template-columns: 1fr; gap: 0.4rem; }
+    .edu__year { padding-top: 0; }
+    .exp__item { grid-template-columns: 1fr; gap: 0.4rem; }
+    .exp__year { padding-top: 0; }
+  }
+
+  /* The horizontal "Line" timeline scrolls sideways — not offered on phones. */
+  @media (max-width: 640px) {
+    .viewtoggle__btn[data-view='line'] { display: none; }
+  }
+</style>
+
+<script>
+  // Table ⇄ timeline ⇄ line toggle — each section (Education, Experience) has
+  // its own toggle + list, persisted independently per visitor.
+  // The default view is set per breakpoint via site.config.ts (EXPERIENCE_VIEW /
+  // EDUCATION_VIEW), surfaced as data-default-desktop/-mobile on the toggle.
+  // The "line" (horizontal) view scrolls sideways, so it's suppressed on phones:
+  // it falls back to "timeline" without overwriting the stored desktop choice.
+  const mobile = window.matchMedia('(max-width: 640px)');
+  document.querySelectorAll<HTMLElement>('.viewtoggle').forEach((toggle) => {
+    const section = toggle.closest('section');
+    const list = section?.querySelector<HTMLOListElement>('.tl[data-view]');
+    if (!section || !list) return;
+
+    const key = `view:${section.id}`;
+    const btns = Array.from(toggle.querySelectorAll<HTMLButtonElement>('.viewtoggle__btn'));
+
+    // Config defaults per breakpoint (fall back to desktop, then 'table').
+    const defDesktop = toggle.dataset.defaultDesktop || 'table';
+    const defMobile = toggle.dataset.defaultMobile || defDesktop;
+
+    // The active choice: an explicit stored pick wins (across both breakpoints);
+    // otherwise the config default for the current viewport. May be "line".
+    const stored = () =>
+      localStorage.getItem(key) || (mobile.matches ? defMobile : defDesktop);
+    // What we actually render, given the current viewport.
+    const resolve = (view: string) => (view === 'line' && mobile.matches ? 'timeline' : view);
+    const render = (view: string) => {
+      list.dataset.view = view;
+      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+    };
+
+    toggle.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.viewtoggle__btn');
+      if (!btn?.dataset.view) return;
+      localStorage.setItem(key, btn.dataset.view);
+      render(resolve(btn.dataset.view));
+    });
+
+    render(resolve(stored()));
+    // Re-resolve when crossing the mobile breakpoint (rotate / resize).
+    mobile.addEventListener('change', () => render(resolve(stored())));
+  });
+</script>

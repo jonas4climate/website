@@ -1,5 +1,13 @@
 ---
 import { HERO_MODE } from '../site.config';
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang?: Lang;
+}
+const { lang = 'en' } = Astro.props;
+const t = useTranslations(lang);
 
 // Assets per mode.
 const POSTER: Record<string, string> = {
@@ -73,22 +81,20 @@ const lights = Array.from({ length: 64 }, (_, i) => {
 
   <div class="container hero__content">
     <p class="label label--energy reveal" style="--d:0.05s">
-      <span class="coord">50.92°N&nbsp;6.36°E&nbsp;·&nbsp;Forschungszentrum&nbsp;Jülich</span>
+      <span class="coord">{t('hero.coord')}</span>
     </p>
     <h1 class="hero__title">
       <span class="reveal" style="--d:0.12s">Jonas&nbsp;Schäfer</span>
     </h1>
-    <p class="hero__lede prose reveal" style="--d:0.24s">
-      <span class="hl-climate">Climate advocate</span> and <span class="hl-energy">PhD candidate</span> developing <strong>building automation and optimal control software</strong> for a more sustainable built environment.
-    </p>
+    <p class="hero__lede prose reveal" style="--d:0.24s" set:html={t('hero.lede')} />
     <div class="hero__actions reveal" style="--d:0.34s">
-      <a href="#research" class="btn btn--primary">Read the research</a>
-      <a href="#contact" class="btn btn--ghost">Get in touch</a>
+      <a href="#research" class="btn btn--primary">{t('hero.ctaResearch')}</a>
+      <a href="#contact" class="btn btn--ghost">{t('hero.ctaContact')}</a>
     </div>
   </div>
 
-  <a href="#about" class="hero__scroll reveal" style="--d:0.5s" aria-label="Scroll to content">
-    <span class="label">Scroll</span>
+  <a href="#about" class="hero__scroll reveal" style="--d:0.5s" aria-label={t('hero.scrollAria')}>
+    <span class="label">{t('hero.scroll')}</span>
     <span class="hero__scrollline" aria-hidden="true"></span>
   </a>
 
@@ -236,7 +242,9 @@ const lights = Array.from({ length: 64 }, (_, i) => {
   .hero__title span { display: inline-block; }
   .hero__lede { font-size: var(--step-1); color: var(--muted); line-height: 1.5; max-width: 42ch; }
   /* only un-classed <strong> takes ink; hl-energy/hl-climate keep their accent */
-  .hero__lede strong:not([class]) { color: var(--ink); font-weight: 560; }
+  /* :global on the inner tag — the lede is injected via set:html, so its
+     <strong> doesn't carry the scope hash. */
+  .hero__lede :global(strong:not([class])) { color: var(--ink); font-weight: 560; }
   .hero__actions { display: flex; flex-wrap: wrap; gap: var(--space-s); margin-top: var(--space-l); }
 
   .btn {

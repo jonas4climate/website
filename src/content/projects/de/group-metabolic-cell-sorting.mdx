@@ -1,0 +1,79 @@
+---
+title: Metabolische Modelle & Zellsortierung
+tagline: Modellierung biochemischer Stoffwechselwege und Analyse des Zellsortierungsverhaltens im Cellular-Potts-Modell.
+role: Gruppenprojekt · M.Sc. Computational Science
+period: Apr — Mai 2024
+tags: ['Modellierung', 'Cellular Potts', 'Python']
+track: compsci
+date: 2024-05
+href: 'https://github.com/jonas4climate/metabolic-cellular-modelling'
+order: 3
+---
+
+import Diagram from '../../../components/media/Diagram.astro';
+import Video from '../../../components/media/Video.astro';
+
+Zwei verbundene Stränge biologischer Modellierung: die Rekonstruktion
+biochemischer Stoffwechselwege und die Untersuchung, wie sich Zellen im
+[Cellular-Potts](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.69.2013)-Modell
+selbst organisieren und sortieren.
+
+## Metabolische Modellierung
+
+Ausgehend von der Enzymkinetik bis hin zur Dynamik kleiner regulatorischer
+Schaltkreise.
+
+<Diagram
+  light
+  src="/media/group-metabolic-cell-sorting/michaelis_menten_comparison.png"
+  alt="Michaelis-Menten-Reaktionsrate gegen Substratkonzentration für drei Parametersätze."
+  caption="Michaelis-Menten-Kinetik: Die Reaktionsrate v sättigt, während das Substrat [S] wächst. Ein kleineres Kₘ (rot) erreicht die halbmaximale Rate früher, während ein kleineres Vₘₐₓ (grün) das Plateau begrenzt."
+/>
+
+<Diagram
+  light
+  src="/media/group-metabolic-cell-sorting/lineweaver_burk.png"
+  alt="Doppelt-reziproker Lineweaver-Burk-Plot mit Datenpunkten und linearer Anpassung."
+  caption="Ein Lineweaver-Burk-Plot (doppelt reziprok) linearisiert die Sättigungskurve, sodass sich Kₘ und Vₘₐₓ aus einer Geradenanpassung an die Messdaten ablesen lassen."
+/>
+
+<Diagram
+  light
+  src="/media/group-metabolic-cell-sorting/rate_equations.png"
+  alt="Ratenkurven dR/dt gegen R für negative Rückkopplung, gegenseitige Hemmung und gegenseitige Aktivierung."
+  caption="Regulatorische Motive als Ratengleichungen (dR/dt vs. R): Negative Rückkopplung relaxiert zu einem einzigen stabilen Zustand (Homöostase), während gegenseitige Hemmung und gegenseitige Aktivierung mehrere Fixpunkte erzeugen können — die Grundlage biologischer Schalter."
+/>
+
+## Musterbildung
+
+Ein Schnakenberg-Reaktions-Diffusions-System: Zwei Chemikalien, die mit
+unterschiedlichen Raten diffundieren und reagieren, brechen spontan die
+Symmetrie zu stabilen räumlichen Mustern — ein Turing-Mechanismus für
+biologische Musterbildung.
+
+<Video
+  gif
+  src="/media/group-metabolic-cell-sorting/schnakenberg.mp4"
+  caption="Schnakenberg-(Turing-)Musterbildung — Flecken entstehen und stabilisieren sich aus einem nahezu gleichförmigen Anfang."
+/>
+
+## Zellsortierung — das Cellular-Potts-Modell
+
+Wie allein differentielle Adhäsion zwei durchmischte Zelltypen zur Trennung
+treibt.
+
+<Diagram
+  light
+  src="/media/group-metabolic-cell-sorting/cell_sorting.png"
+  alt="Momentaufnahmen eines Zellaggregats, das über Monte-Carlo-Schritte sortiert."
+  caption="Sortierung über Monte-Carlo-Schritte (MCS = 0 → 1000): Zwei Zelltypen beginnen durchmischt und trennen sich zunehmend — die kohäsiveren (dunklen) Zellen bilden Cluster und werden umschlossen, die helleren Zellen bleiben in Kontakt mit dem Medium, und das Aggregat rundet sich ab, um seine Grenzflächenenergie zu senken."
+/>
+
+<Diagram
+  light
+  src="/media/group-metabolic-cell-sorting/boundary_mismatch.png"
+  alt="Grenz-Fehlanpassungsverhältnis und fraktionaler Medienkontakt über Monte-Carlo-Schritte."
+  caption="Quantifizierung des Prozesses: Das Grenz-Fehlanpassungsverhältnis fällt und stabilisiert sich, während gleichartige Zellen zu Domänen vergröbern (links); nach etwa 400 MCS säumen die hellen Zellen das Medium vollständig (Anteil → 1) und die dunklen Zellen sind vollständig umschlossen (→ 0) (rechts)."
+/>
+
+Code und Details [auf GitHub](https://github.com/jonas4climate/metabolic-cellular-modelling).

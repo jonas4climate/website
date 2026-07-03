@@ -1,0 +1,99 @@
+---
+title: Partikelsimulation von Korallenwachstum
+tagline: Numerische Lösungen partieller Differentialgleichungen — Wellen-, Diffusions-, Laplace- und Reaktions-Diffusions-Gleichung — sowie Modellierung fraktalen Korallenwachstums mittels diffusionsbegrenzter Aggregation.
+role: Gruppenprojekt · M.Sc. Computational Science
+period: Feb — Mär 2024
+tags: ['numerische Methoden', 'PDGL', 'DLA', 'Python']
+track: compsci
+date: 2024-03
+href: 'https://github.com/jonas4climate/modelling-natural-processes'
+order: 4
+---
+
+import Diagram from '../../../components/media/Diagram.astro';
+import Gallery from '../../../components/media/Gallery.astro';
+import Video from '../../../components/media/Video.astro';
+
+Numerisches Lösen klassischer partieller Differentialgleichungen (Wellen-,
+Diffusions-, Laplace- und Reaktions-Diffusions-Gleichung) sowie der Einsatz von
+[diffusionsbegrenzter Aggregation](https://www.sciencedirect.com/topics/mathematics/diffusion-limited-aggregation),
+um das fraktale Wachstum von Korallen zu modellieren.
+
+## Klassische PDGL lösen
+
+Finite-Differenzen-Verfahren für die zeitabhängige Wellen- und
+Diffusionsgleichung sowie iterative Löser (Jacobi, Gauß-Seidel, SOR) für die
+stationäre Laplace-Gleichung.
+
+<Gallery
+  columns={2}
+  images={[
+    { src: '/media/group-coral-growth/wave_equation.png', alt: 'Momentaufnahmen der Wellenamplitude', caption: 'Wellengleichung: Momentaufnahmen der Amplitude für drei Anfangsbedingungen.' },
+    { src: '/media/group-coral-growth/diffusion_times.png', alt: 'Momentaufnahmen der 2D-Diffusion', caption: '2D-Diffusion: Konzentration von t = 0 bis zum stationären Zustand.' },
+    { src: '/media/group-coral-growth/laplace_convergence.png', alt: 'Konvergenz der iterativen Löser', caption: 'Laplace-Löser: Konvergenz von Jacobi vs. Gauß-Seidel vs. SOR.' },
+    { src: '/media/group-coral-growth/laplace_comparison.png', alt: 'Fehler und Iterationen der Laplace-Löser', caption: 'Lösungsfehler und Iterationen bis zur Konvergenz über die drei Methoden.' },
+  ]}
+/>
+
+## Diffusionsbegrenzte Aggregation — Korallen wachsen lassen
+
+Das zentrale Modell: zufällig laufende Partikel, die bei Kontakt haften bleiben,
+lassen ein verzweigtes, selbstähnliches Fraktal wachsen — ein einfacher
+Mechanismus für korallenartige Strukturen.
+
+<Video
+  gif
+  src="/media/group-coral-growth/dla_growth.mp4"
+  caption="Diffusionsbegrenzte Aggregation: zufällige Läufer bleiben bei Kontakt haften und lassen ausgehend vom Keim einen verzweigten Cluster wachsen."
+/>
+
+<Diagram
+  light
+  src="/media/group-coral-growth/dla_final.png"
+  alt="Fertiges DLA-Aggregat über dem Nährstoffkonzentrationsfeld."
+  caption="Ein fertiges Aggregat (weiß), gewachsen im Nährstofffeld aus der Laplace-Gleichung, mit dem Wachstumsexponenten η = 1,5, der bestimmt, wie stark das Wachstum dem lokalen Gradienten folgt."
+/>
+
+<Gallery
+  columns={2}
+  images={[
+    { src: '/media/group-coral-growth/sor_omega.png', alt: 'Abstimmung des SOR-Relaxationsfaktors', caption: 'Abstimmung des SOR-Relaxationsfaktors ω für schnellste Konvergenz.' },
+    { src: '/media/group-coral-growth/runtime_comparison.png', alt: 'Laufzeit von seriellem vs. parallelem SOR', caption: 'Laufzeit von seriellem vs. parallelem SOR über der Gittergröße N.' },
+  ]}
+/>
+
+## Reaktions-Diffusions-Muster (Gray-Scott)
+
+Zwei Chemikalien, die mit unterschiedlichen Raten reagieren und diffundieren,
+organisieren sich aus einem nahezu gleichförmigen Anfang zu stabilen räumlichen
+Mustern.
+
+<Gallery
+  columns={2}
+  images={[
+    { src: '/media/group-coral-growth/gray_scott_start.png', alt: 'Gray-Scott-Anfangsbedingung', caption: 'Anfangskeim der U- und V-Felder (t = 0).' },
+    { src: '/media/group-coral-growth/gray_scott_end.png', alt: 'Konvergiertes Gray-Scott-Muster', caption: 'Labyrinthartige Muster, die bis t = 8000 entstehen.' },
+  ]}
+/>
+
+## Eigenmoden einer schwingenden Membran
+
+Die Diskretisierung des Helmholtz-Eigenwertproblems verwandelt eine „Trommel“ in
+eine dünnbesetzte Matrix, deren Eigenvektoren ihre Schwingungsmoden sind.
+
+<Video
+  gif
+  src="/media/group-coral-growth/drum_eigenmode.mp4"
+  caption="Eine Schwingungs-Eigenmode einer kreisförmigen Membran aus dem diskretisierten Eigenwertproblem."
+/>
+
+<Gallery
+  columns={2}
+  images={[
+    { src: '/media/group-coral-growth/fd_matrix.png', alt: 'Finite-Differenzen-Matrix', caption: 'Der Finite-Differenzen-Laplace-Operator als dünnbesetzte Matrix (5×5-Gitter).' },
+    { src: '/media/group-coral-growth/eigfreqs_distribution.png', alt: 'Verteilung der Eigenfrequenzen', caption: 'Das Eigenfrequenzspektrum schärft sich, je feiner die Diskretisierung N wird.' },
+    { src: '/media/group-coral-growth/drum_time_memory.png', alt: 'Kosten von dichtem vs. dünnbesetztem Löser', caption: 'Dichte vs. dünnbesetzte Eigenlöser: Lösezeit und Speicher über der Gittergröße.' },
+  ]}
+/>
+
+Code und Details [auf GitHub](https://github.com/jonas4climate/modelling-natural-processes).
