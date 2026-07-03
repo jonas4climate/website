@@ -41,6 +41,7 @@ export const ui = {
 
     // ---- About ----
     'about.label': 'About',
+    'about.portraitAlt': 'Portrait of Jonas Schäfer',
     // inline HTML: <em>
     'about.lead':
       'I work on the <em>optimal operation of buildings</em> — the control systems that decide how a building heats, cools or ventilates itself.',
@@ -175,6 +176,7 @@ export const ui = {
 
     // ---- About ----
     'about.label': 'Über mich',
+    'about.portraitAlt': 'Porträt von Jonas Schäfer',
     'about.lead':
       'Ich arbeite am <em>optimalen Betrieb von Gebäuden</em> — den Regelungssystemen, die entscheiden, wie ein Gebäude heizt, kühlt oder lüftet.',
     'about.body1':
