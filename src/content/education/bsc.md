@@ -7,6 +7,6 @@ year: 2021
 location: 'Birmingham, United Kingdom'
 kind: degree
 note: "First-Class Honours (73%) · Thesis: “Expanding Standardisation in Optical Music Recognition”"
-href: 'https://www.birmingham.ac.uk'
+# href: 'https://www.birmingham.ac.uk'
 order: 1
 ---

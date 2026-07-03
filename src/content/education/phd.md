@@ -7,6 +7,6 @@ year: 2029
 location: 'Aachen / Jülich, Germany'
 kind: degree
 note: 'Doctoral research at Forschungszentrum Jülich (ICE-1)'
-href: 'https://www.rwth-aachen.de/'
+# href: 'https://www.rwth-aachen.de/'
 order: 1
 ---

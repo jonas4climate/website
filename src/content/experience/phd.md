@@ -11,6 +11,6 @@ summary: >-
 points:
   - Cloud-based operation using smart-device data and predictive algorithms.
   - A framework for wider deployment of data-supported rule-based and model-predictive control.
-href: https://www.fz-juelich.de/en/ice/ice-1
+# href: https://www.fz-juelich.de/en/ice/ice-1
 order: 0
 ---
