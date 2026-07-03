@@ -263,6 +263,7 @@ strong { font-weight: 600; }
 /* ---- Inline highlights (track-consistent) ---- */
 .hl-energy { color: var(--energy-ink); font-style: normal; font-weight: 560; }
 .hl-climate { color: var(--earth-ink); font-style: normal; font-weight: 560; }
+.hl-compute { color: var(--compute-ink); font-style: normal; font-weight: 560; }
 
 /* ---- Footer (shared) ---- */
 .footer { border-top: 1px solid var(--line); padding-block: var(--space-l); }
