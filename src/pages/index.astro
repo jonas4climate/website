@@ -715,11 +715,19 @@ function markAuthor(authors: string) {
     .exp__item { grid-template-columns: 1fr; gap: 0.4rem; }
     .exp__year { padding-top: 0; }
   }
+
+  /* The horizontal "Line" timeline scrolls sideways — not offered on phones. */
+  @media (max-width: 640px) {
+    .viewtoggle__btn[data-view='line'] { display: none; }
+  }
 </style>
 
 <script>
   // Table ⇄ timeline ⇄ line toggle — each section (Education, Experience) has
   // its own toggle + list, persisted independently per visitor.
+  // The "line" (horizontal) view scrolls sideways, so it's suppressed on phones:
+  // it falls back to "timeline" without overwriting the stored desktop choice.
+  const mobile = window.matchMedia('(max-width: 640px)');
   document.querySelectorAll<HTMLElement>('.viewtoggle').forEach((toggle) => {
     const section = toggle.closest('section');
     const list = section?.querySelector<HTMLOListElement>('.tl[data-view]');
@@ -727,21 +735,28 @@ function markAuthor(authors: string) {
 
     const key = `view:${section.id}`;
     const btns = Array.from(toggle.querySelectorAll<HTMLButtonElement>('.viewtoggle__btn'));
-    const apply = (view: string) => {
-      list.dataset.view = view;
-      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
-      localStorage.setItem(key, view);
-    };
-    toggle.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.viewtoggle__btn');
-      if (btn?.dataset.view) apply(btn.dataset.view);
-    });
 
-    // Sync to the stored choice, else the view marked pressed in the markup.
-    const initial =
+    // The user's stored/marked choice (may be "line").
+    const stored = () =>
       localStorage.getItem(key) ||
       btns.find((b) => b.getAttribute('aria-pressed') === 'true')?.dataset.view ||
       'table';
-    apply(initial);
+    // What we actually render, given the current viewport.
+    const resolve = (view: string) => (view === 'line' && mobile.matches ? 'timeline' : view);
+    const render = (view: string) => {
+      list.dataset.view = view;
+      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+    };
+
+    toggle.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.viewtoggle__btn');
+      if (!btn?.dataset.view) return;
+      localStorage.setItem(key, btn.dataset.view);
+      render(resolve(btn.dataset.view));
+    });
+
+    render(resolve(stored()));
+    // Re-resolve when crossing the mobile breakpoint (rotate / resize).
+    mobile.addEventListener('change', () => render(resolve(stored())));
   });
 </script>

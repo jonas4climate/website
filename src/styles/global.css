@@ -96,6 +96,10 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* Kill any horizontal scroll at the viewport level. `clip` (unlike `hidden`)
+     does not turn the root into a scroll container, so vertical scrolling,
+     sticky and fixed positioning are unaffected. */
+  overflow-x: clip;
 }
 
 @media (prefers-reduced-motion: reduce) {
