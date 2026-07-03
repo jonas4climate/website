@@ -1,0 +1,54 @@
+---
+// A diagram (SVG, PNG, or single-page PDF), framed on a neutral surface so it
+// stays legible in both themes. PDFs are rendered via <PdfSlides single />.
+//
+//   <Diagram src="/media/thesis/architecture.svg" caption="Toolkit architecture" />
+//   <Diagram src="/media/thesis/pipeline.pdf" caption="Model-generation pipeline" />
+import PdfSlides from './PdfSlides.astro';
+
+interface Props {
+  src: string;
+  alt?: string;
+  caption?: string;
+  /** Render diagram on a plain white surface (good for line diagrams). */
+  light?: boolean;
+}
+const { src, alt = '', caption, light = false } = Astro.props;
+const isPdf = src.toLowerCase().endsWith('.pdf');
+---
+
+{isPdf ? (
+  <PdfSlides src={src} caption={caption} single />
+) : (
+  <figure class:list={['media-diagram', { 'media-diagram--light': light }]}>
+    <div class="media-diagram__frame">
+      <img src={src} alt={alt} loading="lazy" decoding="async" />
+    </div>
+    {caption && <figcaption>{caption}</figcaption>}
+  </figure>
+)}
+
+<style>
+  .media-diagram {
+    margin-block: var(--space-l);
+  }
+  .media-diagram__frame {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-m);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .media-diagram--light .media-diagram__frame { background: #fff; }
+  .media-diagram__frame img {
+    max-width: 100%;
+    height: auto;
+  }
+  .media-diagram figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--faint);
+    margin-top: 0.5rem;
+  }
+</style>

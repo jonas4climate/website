@@ -5,6 +5,7 @@ role: Group project · MSc Computational Science
 period: Apr — May 2024
 tags: ['modelling', 'Cellular Potts', 'Python']
 track: compsci
+date: 2024-05
 href: 'https://github.com/jonas4climate/metabolic-cellular-modelling'
 order: 3
 ---

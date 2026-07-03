@@ -1,7 +1,7 @@
 ---
 credential: Doctor of Philosophy (PhD)
 institution: RWTH Aachen University
-field: Building automation & optimal control of building infrastructure
+# field: Building automation & optimal control of building infrastructure
 period: 2026 — now
 year: 2029
 location: 'Aachen / Jülich, Germany'

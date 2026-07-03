@@ -5,6 +5,7 @@ role: Research intern · University of Birmingham & Royal Society
 period: Jul — Sep 2020
 tags: ['Computer Vision', 'Pose Estimation', 'Deep Learning', 'Python']
 track: compsci
+date: 2020-09
 order: 5
 ---
 

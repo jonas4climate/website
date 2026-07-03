@@ -1,7 +1,7 @@
 ---
 credential: B.Sc. (Hons) Computer Science
 institution: University of Birmingham
-field: Artificial intelligence & machine learning
+# field: Artificial intelligence & machine learning
 period: 2018 — 2021
 year: 2021
 location: 'Birmingham, United Kingdom'

@@ -17,7 +17,7 @@ const research = defineCollection({
 });
 
 const projects = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
   schema: z.object({
     title: z.string(),
     tagline: z.string(),
@@ -30,7 +30,28 @@ const projects = defineCollection({
     // climate → sustainability/advocacy (green)
     track: z.enum(['compsci', 'energy', 'climate']).default('compsci'),
     featured: z.boolean().default(false), // show on the homepage (as a wide card)
-    order: z.number().default(0),
+    // Sort key: the project's date as "YYYY-MM" (use the end month for a range).
+    // Projects are shown newest-first within each track; the most recent ones
+    // surface in the homepage previews. Sorts lexicographically = chronologically.
+    date: z.string().regex(/^\d{4}-\d{2}$/, 'Use "YYYY-MM"'),
+    order: z.number().default(0), // tiebreaker within the same month
+  }),
+});
+
+const experience = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/experience' }),
+  schema: z.object({
+    role: z.string(),                       // job title
+    organization: z.string(),               // employer / institution
+    location: z.string().optional(),
+    period: z.string(),                     // display, e.g. "2026 — now"
+    year: z.number(),                       // sort key (end year; use a future year for ongoing)
+    kind: z.enum(['research', 'engineering', 'internship', 'nonprofit', 'freelance'])
+      .default('research'),
+    summary: z.string().optional(),         // one-line description
+    points: z.array(z.string()).default([]),// optional bullet highlights
+    href: z.string().url().optional(),
+    order: z.number().default(0),           // tiebreaker within the same year
   }),
 });
 
@@ -50,4 +71,4 @@ const education = defineCollection({
   }),
 });
 
-export const collections = { research, projects, education };
+export const collections = { research, projects, experience, education };

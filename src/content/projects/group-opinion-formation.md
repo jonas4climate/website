@@ -5,6 +5,7 @@ role: Group project · MSc Computational Science
 period: Jan — Feb 2024
 tags: ['complex systems', 'simulation', 'Python']
 track: compsci
+date: 2024-02
 href: 'https://github.com/jonas4climate/complex-systems-project'
 order: 5
 ---

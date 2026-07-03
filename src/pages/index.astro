@@ -5,8 +5,9 @@ import Nav from '../components/Nav.astro';
 import Hero from '../components/Hero.astro';
 import { PROJECTS_LAYOUT } from '../site.config';
 
+// Newest first within each track; the most recent surface in the previews.
 const allProjects = (await getCollection('projects')).sort(
-  (a, b) => a.data.order - b.data.order,
+  (a, b) => b.data.date.localeCompare(a.data.date) || a.data.order - b.data.order,
 );
 // The homepage previews a few projects per track; the rest live on /projects/.
 // Layout (see site.config.ts) decides the column arrangement. Each rendered
@@ -26,6 +27,10 @@ const projectColumns =
 const trackColCount = projectColumns.length;
 const shownCount = projectColumns.flat().reduce((n, b) => n + b.items.length, 0);
 const hasMoreProjects = allProjects.length > shownCount;
+
+const experience = (await getCollection('experience')).sort(
+  (a, b) => b.data.year - a.data.year || a.data.order - b.data.order,
+);
 
 const research = (await getCollection('research')).sort(
   (a, b) => a.data.order - b.data.order,
@@ -80,45 +85,6 @@ function markAuthor(authors: string) {
             <div><dt class="label">Languages</dt><dd>German (native) · English (C2) · French (B1+)</dd></div>
           </dl>
         </div>
-      </div>
-    </section>
-
-    <!-- ================= EDUCATION ================= -->
-    <hr class="limb" />
-    <section id="education" class="section">
-      <div class="container">
-        <div class="section-head">
-          <span class="idx">/ education</span>
-          <h2>Education</h2>
-          <div class="viewtoggle" role="group" aria-label="Education view">
-            <button type="button" class="viewtoggle__btn" data-view="table" aria-pressed="true">Table</button>
-            <button type="button" class="viewtoggle__btn" data-view="timeline" aria-pressed="false">Timeline</button>
-          </div>
-        </div>
-        <ol class="edu" data-view="table">
-          {education.map((e) => (
-            <li class="edu__item">
-              <div class="edu__year label">{e.data.period}</div>
-              <div class="edu__main">
-                <h3 class="edu__cred">{e.data.credential}</h3>
-                <p class="edu__inst">
-                  {e.data.institution}
-                  {e.data.location && <span class="edu__loc"> · {e.data.location}</span>}
-                </p>
-                {e.data.field && <p class="edu__field text-muted">{e.data.field}</p>}
-                {e.data.note && <p class="edu__note text-muted">{e.data.note}</p>}
-                <div class="edu__foot">
-                  <span class={`chip chip--${e.data.kind}`}>{e.data.kind}</span>
-                  {e.data.href && (
-                    <a class="pub__link" href={e.data.href} target="_blank" rel="noopener">
-                      Credential <span aria-hidden="true">↗</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ol>
       </div>
     </section>
 
@@ -206,6 +172,90 @@ function markAuthor(authors: string) {
             <a class="link" href="/projects/">Browse all projects →</a>
           </div>
         )}
+      </div>
+    </section>
+
+    <!-- ================= EXPERIENCE ================= -->
+    <hr class="limb" />
+    <section id="experience" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">/ experience</span>
+          <h2>Experience</h2>
+          <div class="viewtoggle" role="group" aria-label="Experience view">
+            <button type="button" class="viewtoggle__btn" data-view="table" aria-pressed="true">Table</button>
+            <button type="button" class="viewtoggle__btn" data-view="timeline" aria-pressed="false">Timeline</button>
+            <button type="button" class="viewtoggle__btn" data-view="line" aria-pressed="false">Line</button>
+          </div>
+        </div>
+        <ol class="exp tl" data-view="table">
+          {experience.map((e) => (
+            <li class="exp__item tl-item">
+              <div class="exp__year label tl-date">{e.data.period}</div>
+              <div class="exp__main">
+                <h3 class="exp__role tl-title">{e.data.role}</h3>
+                <p class="exp__org tl-sub">
+                  {e.data.organization}
+                  {e.data.location && <span class="exp__loc"> · {e.data.location}</span>}
+                </p>
+                {e.data.summary && <p class="exp__summary text-muted tl-extra">{e.data.summary}</p>}
+                {e.data.points.length > 0 && (
+                  <ul class="exp__points text-muted tl-extra">
+                    {e.data.points.map((pt) => <li>{pt}</li>)}
+                  </ul>
+                )}
+                <div class="exp__foot tl-extra">
+                  <span class={`chip chip--${e.data.kind}`}>{e.data.kind}</span>
+                  {e.data.href && (
+                    <a class="pub__link" href={e.data.href} target="_blank" rel="noopener">
+                      Details <span aria-hidden="true">↗</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= EDUCATION ================= -->
+    <hr class="limb" />
+    <section id="education" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="idx">/ education</span>
+          <h2>Education</h2>
+          <div class="viewtoggle" role="group" aria-label="Education view">
+            <button type="button" class="viewtoggle__btn" data-view="table" aria-pressed="false">Table</button>
+            <button type="button" class="viewtoggle__btn" data-view="timeline" aria-pressed="true">Timeline</button>
+            <button type="button" class="viewtoggle__btn" data-view="line" aria-pressed="false">Line</button>
+          </div>
+        </div>
+        <ol class="edu tl" data-view="timeline">
+          {education.map((e) => (
+            <li class="edu__item tl-item">
+              <div class="edu__year label tl-date">{e.data.period}</div>
+              <div class="edu__main">
+                <h3 class="edu__cred tl-title">{e.data.credential}</h3>
+                <p class="edu__inst tl-sub">
+                  {e.data.institution}
+                  {e.data.location && <span class="edu__loc"> · {e.data.location}</span>}
+                </p>
+                {e.data.field && <p class="edu__field text-muted tl-extra">{e.data.field}</p>}
+                {e.data.note && <p class="edu__note text-muted tl-extra">{e.data.note}</p>}
+                <div class="edu__foot tl-extra">
+                  <span class={`chip chip--${e.data.kind}`}>{e.data.kind}</span>
+                  {e.data.href && (
+                    <a class="pub__link" href={e.data.href} target="_blank" rel="noopener">
+                      Credential <span aria-hidden="true">↗</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
 
@@ -321,6 +371,40 @@ function markAuthor(authors: string) {
   .chip--degree { color: var(--ink); border-color: var(--line-strong); }
   .chip--certificate { color: var(--award); border-color: color-mix(in oklab, var(--award) 55%, transparent); }
   .chip--course { color: var(--muted); }
+  /* experience kinds */
+  .chip--research { color: var(--energy-ink); border-color: color-mix(in oklab, var(--energy) 45%, transparent); }
+  .chip--engineering { color: var(--compute-ink); border-color: color-mix(in oklab, var(--compute-ink) 45%, transparent); }
+  .chip--nonprofit { color: var(--earth-ink); border-color: color-mix(in oklab, var(--earth) 45%, transparent); }
+  .chip--internship { color: var(--success); border-color: color-mix(in oklab, var(--success) 45%, transparent); }
+  .chip--freelance { color: var(--muted); border-color: var(--line-strong); }
+
+  /* ---- Experience (mirrors the education table layout) ---- */
+  .exp { list-style: none; padding: 0; }
+  .exp__item {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: var(--space-m);
+    padding-block: var(--space-m);
+    border-top: 1px solid var(--line);
+  }
+  .exp__item:last-child { border-bottom: 1px solid var(--line); }
+  .exp__year { padding-top: 0.3rem; color: var(--faint); white-space: nowrap; }
+  .exp__role { margin-bottom: 0.25rem; }
+  .exp__org { font-size: var(--step-0); }
+  .exp__loc { color: var(--muted); }
+  .exp__summary { font-size: var(--step--1); margin-top: 0.35rem; }
+  .exp__points {
+    margin-top: 0.5rem;
+    padding-left: 1.1rem;
+    font-size: var(--step--1);
+    line-height: 1.55;
+  }
+  .exp__points li + li { margin-top: 0.25rem; }
+  .exp__points li::marker { color: var(--energy); }
+  .exp__foot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-s);
+    margin-top: 0.6rem;
+  }
 
   /* ---- Education view toggle ---- */
   .viewtoggle {
@@ -371,9 +455,15 @@ function markAuthor(authors: string) {
     margin-top: 0.6rem;
   }
 
-  /* ---- Education (timeline view) ---- */
-  .edu[data-view='timeline'] { padding-left: 0.4rem; }
-  .edu[data-view='timeline'] .edu__item {
+  /* ---- Shared timeline / line views (used by Education AND Experience) ----
+     Each list carries `.tl` plus a `data-view`; its rows carry `.tl-item`, and
+     the inner bits carry `.tl-date` / `.tl-title` / `.tl-sub`, with anything
+     that should hide in the compact line view marked `.tl-extra`. The default
+     (table) view keeps each section's own `.edu`/`.exp` grid styles. */
+
+  /* timeline view — vertical line with a dot per entry */
+  .tl[data-view='timeline'] { padding-left: 0.4rem; }
+  .tl[data-view='timeline'] .tl-item {
     display: block;
     border-top: none;
     position: relative;
@@ -381,11 +471,11 @@ function markAuthor(authors: string) {
     padding: 0 0 var(--space-l) 1.6rem;
     border-left: 2px solid var(--line-strong);
   }
-  .edu[data-view='timeline'] .edu__item:last-child {
+  .tl[data-view='timeline'] .tl-item:last-child {
     border-bottom: none;
     padding-bottom: 0.3rem;
   }
-  .edu[data-view='timeline'] .edu__item::before {
+  .tl[data-view='timeline'] .tl-item::before {
     content: '';
     position: absolute;
     left: -7px;
@@ -397,14 +487,90 @@ function markAuthor(authors: string) {
     border: 2px solid var(--energy);
     box-shadow: 0 0 8px rgba(var(--glow), 0.5);
   }
-  .edu[data-view='timeline'] .edu__year {
+  .tl[data-view='timeline'] .tl-date {
     padding-top: 0;
     margin-bottom: 0.35rem;
     color: var(--energy-ink);
   }
 
+  /* line view — a single horizontal rule with a dot per milestone; nodes read
+     newest → oldest (left → right). The row scrolls inside its own container,
+     so it never widens the page. */
+  .tl[data-view='line'] {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding: var(--space-2xs) 0 var(--space-s);
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .tl[data-view='line'] .tl-item {
+    position: relative;
+    flex: 0 0 13rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border: 0;
+    padding: 0 var(--space-xs);
+    scroll-snap-align: center;
+  }
+  /* the continuous line (each node draws its own segment; they abut) */
+  .tl[data-view='line'] .tl-item::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--line-strong);
+    z-index: 0;
+  }
+  /* don't let the rule float past the outer dots */
+  .tl[data-view='line'] .tl-item:first-child::before { left: 50%; }
+  .tl[data-view='line'] .tl-item:last-child::before { right: 50%; }
+  /* the milestone dot, sitting on the line */
+  .tl[data-view='line'] .tl-item::after {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--space);
+    border: 2px solid var(--energy);
+    box-shadow: 0 0 8px rgba(var(--glow), 0.5);
+    z-index: 1;
+  }
+  .tl[data-view='line'] .tl-date {
+    padding-top: 0;
+    margin-bottom: 1.9rem; /* clears the line so the title sits below it */
+    color: var(--energy-ink);
+    white-space: nowrap;
+  }
+  .tl[data-view='line'] .tl-title {
+    font-size: var(--step-0);
+    margin-bottom: 0.15rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .tl[data-view='line'] .tl-sub {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  /* keep the horizontal nodes compact */
+  .tl[data-view='line'] .tl-extra { display: none; }
+
   /* ---- Projects: parallel track columns (2 or 3, per site config) ---- */
   .tracks { display: grid; gap: var(--space-l); }
+  /* grid/flex children must be allowed to shrink below their content width,
+     otherwise a long title or tag can blow a column past the viewport edge */
+  .track-col__group, .track-col, .card { min-width: 0; }
   .tracks--3 { grid-template-columns: repeat(3, 1fr); }
   .tracks--2 { grid-template-columns: 1fr 1fr; }
   /* a column can hold more than one stacked track-block (energy-focus layout) */
@@ -546,24 +712,36 @@ function markAuthor(authors: string) {
     .pub__year { padding-top: 0; }
     .edu__item { grid-template-columns: 1fr; gap: 0.4rem; }
     .edu__year { padding-top: 0; }
+    .exp__item { grid-template-columns: 1fr; gap: 0.4rem; }
+    .exp__year { padding-top: 0; }
   }
 </style>
 
 <script>
-  // Education table ⇄ timeline toggle (persisted per visitor)
-  const eduList = document.querySelector<HTMLOListElement>('.edu');
-  const toggle = document.querySelector<HTMLElement>('.viewtoggle');
-  if (eduList && toggle) {
+  // Table ⇄ timeline ⇄ line toggle — each section (Education, Experience) has
+  // its own toggle + list, persisted independently per visitor.
+  document.querySelectorAll<HTMLElement>('.viewtoggle').forEach((toggle) => {
+    const section = toggle.closest('section');
+    const list = section?.querySelector<HTMLOListElement>('.tl[data-view]');
+    if (!section || !list) return;
+
+    const key = `view:${section.id}`;
     const btns = Array.from(toggle.querySelectorAll<HTMLButtonElement>('.viewtoggle__btn'));
     const apply = (view: string) => {
-      eduList.dataset.view = view;
+      list.dataset.view = view;
       btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
-      localStorage.setItem('eduView', view);
+      localStorage.setItem(key, view);
     };
     toggle.addEventListener('click', (e) => {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.viewtoggle__btn');
       if (btn?.dataset.view) apply(btn.dataset.view);
     });
-    if (localStorage.getItem('eduView') === 'timeline') apply('timeline');
-  }
+
+    // Sync to the stored choice, else the view marked pressed in the markup.
+    const initial =
+      localStorage.getItem(key) ||
+      btns.find((b) => b.getAttribute('aria-pressed') === 'true')?.dataset.view ||
+      'table';
+    apply(initial);
+  });
 </script>

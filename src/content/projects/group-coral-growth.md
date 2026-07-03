@@ -5,6 +5,7 @@ role: Group project · MSc Computational Science
 period: Feb — Mar 2024
 tags: ['numerical methods', 'PDEs', 'DLA', 'Python']
 track: compsci
+date: 2024-03
 href: 'https://github.com/jonas4climate/modelling-natural-processes'
 order: 4
 ---

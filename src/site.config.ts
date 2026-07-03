@@ -30,4 +30,4 @@ export type ProjectsLayout = 'three-column' | 'energy-focus';
  *
  * Both link to /projects/ for the full, categorised list.
  */
-export const PROJECTS_LAYOUT: ProjectsLayout = 'three-column';
+export const PROJECTS_LAYOUT: ProjectsLayout = 'energy-focus';

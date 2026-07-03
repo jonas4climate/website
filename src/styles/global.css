@@ -119,6 +119,7 @@ body {
   text-rendering: optimizeLegibility;
   min-height: 100vh;
   overflow-x: clip;
+  overflow-wrap: break-word; /* long words / URLs wrap instead of forcing width */
   transition: background 0.4s var(--ease), color 0.4s var(--ease);
 }
 
@@ -173,7 +174,10 @@ strong { font-weight: 600; }
 .section-head {
   display: flex;
   align-items: baseline;
-  gap: var(--space-s);
+  flex-wrap: wrap;          /* let the heading + controls (e.g. view toggle)
+                               drop to a new line instead of overrunning the
+                               viewport on narrow screens */
+  gap: var(--space-2xs) var(--space-s);
   margin-bottom: var(--space-l);
 }
 

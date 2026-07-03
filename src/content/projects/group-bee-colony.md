@@ -5,6 +5,7 @@ role: Group project · MSc Computational Science
 period: Jun — Jul 2024
 tags: ['agent-based modelling', 'complex systems', 'Python']
 track: compsci
+date: 2024-07
 href: 'https://github.com/jonas4climate/honeybee-colony-abm'
 order: 2
 ---

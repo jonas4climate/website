@@ -1,0 +1,223 @@
+---
+// A responsive grid of images. Click any image to open it in a lightbox
+// (with keyboard arrows + Esc). Pass images as a prop:
+//
+//   import Gallery from '../../components/media/Gallery.astro';
+//   <Gallery
+//     columns={2}
+//     images={[
+//       { src: '/media/sb56/room.jpg', alt: 'Negotiation room', caption: 'SB56' },
+//       { src: '/media/sb56/badge.jpg', alt: 'Delegate badge' },
+//     ]}
+//   />
+interface Img {
+  src: string;
+  alt?: string;
+  caption?: string;
+}
+interface Props {
+  images: Img[];
+  /** Target columns on wide screens (grid auto-fits below that). */
+  columns?: number;
+}
+const { images, columns = 3 } = Astro.props;
+---
+
+<div class="media-gallery" style={`--cols:${columns}`}>
+  {images.map((img) => (
+    <figure class="media-gallery__item">
+      <button
+        type="button"
+        class="media-gallery__trigger js-lightbox"
+        data-src={img.src}
+        data-caption={img.caption ?? img.alt ?? ''}
+        aria-label={`Enlarge image${img.alt ? `: ${img.alt}` : ''}`}
+      >
+        <img src={img.src} alt={img.alt ?? ''} loading="lazy" decoding="async" />
+      </button>
+      {img.caption && <figcaption>{img.caption}</figcaption>}
+    </figure>
+  ))}
+</div>
+
+<script>
+  // One shared lightbox overlay per page, created lazily on first open.
+  function ensureLightbox() {
+    let el = document.querySelector<HTMLElement>('.media-lightbox');
+    if (el) return el;
+
+    el = document.createElement('div');
+    el.className = 'media-lightbox';
+    el.hidden = true;
+    el.innerHTML = `
+      <button class="media-lightbox__close" aria-label="Close">×</button>
+      <button class="media-lightbox__nav media-lightbox__nav--prev" aria-label="Previous">‹</button>
+      <figure class="media-lightbox__figure">
+        <img class="media-lightbox__img" alt="" />
+        <figcaption class="media-lightbox__cap"></figcaption>
+      </figure>
+      <button class="media-lightbox__nav media-lightbox__nav--next" aria-label="Next">›</button>
+    `;
+    document.body.appendChild(el);
+    return el;
+  }
+
+  const triggers = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('.js-lightbox'),
+  );
+  if (triggers.length) {
+    const box = ensureLightbox();
+    const img = box.querySelector<HTMLImageElement>('.media-lightbox__img')!;
+    const cap = box.querySelector<HTMLElement>('.media-lightbox__cap')!;
+    let index = 0;
+
+    function show(i: number) {
+      index = (i + triggers.length) % triggers.length;
+      const t = triggers[index];
+      img.src = t.dataset.src || '';
+      img.alt = t.querySelector('img')?.alt || '';
+      const c = t.dataset.caption || '';
+      cap.textContent = c;
+      cap.hidden = !c;
+    }
+    function open(i: number) {
+      show(i);
+      box.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+    function close() {
+      box.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    triggers.forEach((t, i) => t.addEventListener('click', () => open(i)));
+    box.querySelector('.media-lightbox__close')!.addEventListener('click', close);
+    box.querySelector('.media-lightbox__nav--prev')!
+      .addEventListener('click', () => show(index - 1));
+    box.querySelector('.media-lightbox__nav--next')!
+      .addEventListener('click', () => show(index + 1));
+    box.addEventListener('click', (e) => {
+      if (e.target === box) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (box.hidden) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowLeft') show(index - 1);
+      if (e.key === 'ArrowRight') show(index + 1);
+    });
+  }
+</script>
+
+<style>
+  .media-gallery {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(min(14rem, 100%), 1fr)
+    );
+    gap: var(--space-s);
+    margin-block: var(--space-l);
+  }
+  @media (min-width: 700px) {
+    .media-gallery {
+      grid-template-columns: repeat(var(--cols), 1fr);
+    }
+  }
+  .media-gallery__item { margin: 0; }
+  .media-gallery__trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .media-gallery__trigger img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    transition: transform 0.3s var(--ease), border-color 0.2s var(--ease);
+  }
+  .media-gallery__trigger:hover img {
+    transform: scale(1.03);
+    border-color: var(--line-strong);
+  }
+  .media-gallery figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--faint);
+    margin-top: 0.4rem;
+  }
+</style>
+
+<style is:global>
+  /* Lightbox lives on <body>, so it needs global (unscoped) styles. */
+  .media-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-s);
+    padding: clamp(1rem, 4vw, 3rem);
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(4px);
+  }
+  .media-lightbox[hidden] { display: none; }
+  .media-lightbox__figure {
+    margin: 0;
+    max-width: min(90vw, 70rem);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .media-lightbox__img {
+    max-width: 100%;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+  .media-lightbox__cap {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: center;
+  }
+  .media-lightbox__cap[hidden] { display: none; }
+  .media-lightbox__close,
+  .media-lightbox__nav {
+    flex: none;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    cursor: pointer;
+    line-height: 1;
+    transition: background 0.2s ease;
+  }
+  .media-lightbox__close:hover,
+  .media-lightbox__nav:hover { background: rgba(255, 255, 255, 0.25); }
+  .media-lightbox__nav {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.6rem;
+  }
+  .media-lightbox__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.5rem;
+  }
+  @media (max-width: 640px) {
+    .media-lightbox__nav { width: 2.25rem; height: 2.25rem; font-size: 1.3rem; }
+  }
+</style>

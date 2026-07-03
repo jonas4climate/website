@@ -5,7 +5,7 @@ import Nav from '../../components/Nav.astro';
 
 export async function getStaticPaths() {
   const projects = (await getCollection('projects')).sort(
-    (a, b) => a.data.order - b.data.order,
+    (a, b) => b.data.date.localeCompare(a.data.date) || a.data.order - b.data.order,
   );
   // prev/next stay within the same track
   return projects.map((project) => {

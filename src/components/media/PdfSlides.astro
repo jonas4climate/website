@@ -1,0 +1,251 @@
+---
+// Renders a PDF as a page-by-page slideshow (prev/next + keyboard), or a single
+// page when `single` is set (used for one-page PDF diagrams). Pages are drawn
+// with pdf.js onto a canvas, so no browser PDF plugin is required.
+//
+// Usage in an .mdx project page:
+//   import PdfSlides from '../../components/media/PdfSlides.astro';
+//   <PdfSlides src="/media/master-thesis/results.pdf" caption="Selected slides" />
+interface Props {
+  /** URL to the PDF, e.g. "/media/<project>/deck.pdf" (place file in public/media). */
+  src: string;
+  caption?: string;
+  /** Render only the first page with no controls (single diagram). */
+  single?: boolean;
+  /** Start on this page (1-based). */
+  start?: number;
+}
+const { src, caption, single = false, start = 1 } = Astro.props;
+---
+
+<figure
+  class:list={['media-pdf js-pdf', { 'media-pdf--single': single }]}
+  data-src={src}
+  data-single={String(single)}
+  data-start={String(start)}
+  tabindex="0"
+  aria-roledescription={single ? 'diagram' : 'slideshow'}
+>
+  <div class="media-pdf__stage">
+    <canvas class="media-pdf__canvas"></canvas>
+    <div class="media-pdf__loading label" aria-hidden="true">Loading…</div>
+    {!single && (
+      <>
+        <button
+          type="button"
+          class="media-pdf__nav media-pdf__nav--prev"
+          data-dir="-1"
+          aria-label="Previous page"
+        >
+          <span aria-hidden="true">‹</span>
+        </button>
+        <button
+          type="button"
+          class="media-pdf__nav media-pdf__nav--next"
+          data-dir="1"
+          aria-label="Next page"
+        >
+          <span aria-hidden="true">›</span>
+        </button>
+      </>
+    )}
+  </div>
+
+  <div class="media-pdf__bar">
+    {!single && <span class="media-pdf__count label" aria-live="polite">— / —</span>}
+    <a class="media-pdf__download label" href={src} download>
+      Download PDF <span aria-hidden="true">↓</span>
+    </a>
+  </div>
+
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  import * as pdfjsLib from 'pdfjs-dist';
+  // Bundle the worker with the site rather than pulling it from a CDN.
+  import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+
+  const MAX_DPR = 2;
+
+  function initPdf(root: HTMLElement) {
+    if (root.dataset.pdfReady) return;
+    root.dataset.pdfReady = 'true';
+
+    const src = root.dataset.src!;
+    const single = root.dataset.single === 'true';
+    const canvas = root.querySelector<HTMLCanvasElement>('.media-pdf__canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const stage = root.querySelector<HTMLElement>('.media-pdf__stage')!;
+    const loading = root.querySelector<HTMLElement>('.media-pdf__loading');
+    const count = root.querySelector<HTMLElement>('.media-pdf__count');
+    const prev = root.querySelector<HTMLButtonElement>('.media-pdf__nav--prev');
+    const next = root.querySelector<HTMLButtonElement>('.media-pdf__nav--next');
+
+    let doc: import('pdfjs-dist').PDFDocumentProxy | null = null;
+    let total = 1;
+    let current = Math.max(1, parseInt(root.dataset.start || '1', 10));
+    let rendering = false;
+    let queued: number | null = null;
+
+    function updateUI() {
+      if (count) count.textContent = `${current} / ${total}`;
+      if (prev) prev.disabled = current <= 1;
+      if (next) next.disabled = current >= total;
+    }
+
+    async function renderPage(n: number) {
+      if (!doc) return;
+      if (rendering) {
+        queued = n;
+        return;
+      }
+      rendering = true;
+      const page = await doc.getPage(n);
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+      const cssWidth = stage.clientWidth || 640;
+      const unscaled = page.getViewport({ scale: 1 });
+      const viewport = page.getViewport({ scale: (cssWidth / unscaled.width) * dpr });
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      canvas.style.width = viewport.width / dpr + 'px';
+      canvas.style.height = viewport.height / dpr + 'px';
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      loading?.remove();
+      rendering = false;
+
+      if (queued !== null) {
+        const q = queued;
+        queued = null;
+        renderPage(q);
+      }
+    }
+
+    function go(n: number) {
+      current = Math.min(total, Math.max(1, n));
+      updateUI();
+      renderPage(current);
+    }
+
+    prev?.addEventListener('click', () => go(current - 1));
+    next?.addEventListener('click', () => go(current + 1));
+
+    if (!single) {
+      root.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(current - 1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); }
+      });
+    }
+
+    // Re-render current page on width changes (debounced).
+    let rt: number;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(rt);
+      rt = window.setTimeout(() => renderPage(current), 150);
+    });
+    ro.observe(stage);
+
+    pdfjsLib
+      .getDocument(src)
+      .promise.then((loaded) => {
+        doc = loaded;
+        total = loaded.numPages;
+        current = Math.min(current, total);
+        updateUI();
+        renderPage(current);
+      })
+      .catch((err) => {
+        console.error('PDF failed to load:', src, err);
+        if (loading) loading.textContent = 'Could not load PDF — use the download link.';
+      });
+  }
+
+  const boot = () =>
+    document.querySelectorAll<HTMLElement>('.js-pdf').forEach(initPdf);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+</script>
+
+<style>
+  .media-pdf {
+    margin-block: var(--space-l);
+  }
+  .media-pdf:focus-visible {
+    outline: 2px solid var(--energy);
+    outline-offset: 4px;
+    border-radius: var(--radius);
+  }
+  .media-pdf__stage {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 8rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .media-pdf__canvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: calc(var(--radius) - 1px);
+  }
+  .media-pdf__loading {
+    position: absolute;
+    color: var(--faint);
+  }
+  .media-pdf__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.5rem;
+    height: 2.5rem;
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+  }
+  .media-pdf__nav:hover:not(:disabled) { opacity: 1; }
+  .media-pdf__nav:disabled { opacity: 0.25; cursor: default; }
+  .media-pdf__nav--prev { left: var(--space-s); }
+  .media-pdf__nav--next { right: var(--space-s); }
+
+  .media-pdf__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    margin-top: 0.6rem;
+  }
+  .media-pdf__count { color: var(--faint); }
+  .media-pdf__download {
+    color: var(--muted);
+    transition: color 0.2s var(--ease);
+  }
+  .media-pdf__download:hover { color: var(--energy-ink); }
+
+  .media-pdf figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--faint);
+    margin-top: 0.5rem;
+  }
+
+  .media-pdf--single .media-pdf__bar { justify-content: flex-end; }
+</style>

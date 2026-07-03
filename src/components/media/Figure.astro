@@ -1,0 +1,37 @@
+---
+// A single image with an optional caption.
+//
+//   import Figure from '../../components/media/Figure.astro';
+//   <Figure src="/media/cop26/plenary.jpg" alt="Plenary hall" caption="COP26, Glasgow" />
+interface Props {
+  src: string;
+  alt?: string;
+  caption?: string;
+  /** Cap the displayed width, e.g. "36rem". Defaults to full column width. */
+  width?: string;
+}
+const { src, alt = '', caption, width } = Astro.props;
+---
+
+<figure class="media-figure" style={width ? `max-width:${width}` : undefined}>
+  <img src={src} alt={alt} loading="lazy" decoding="async" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .media-figure {
+    margin-block: var(--space-l);
+  }
+  .media-figure img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+  }
+  .media-figure figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--faint);
+    margin-top: 0.5rem;
+  }
+</style>

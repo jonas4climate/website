@@ -6,6 +6,7 @@ period: Nov 2024 — Aug 2025
 tags: ['Modelica', 'MPC', 'multi-agent systems', 'building simulation', 'energy flexibility', 'Python']
 metric: { value: 'MSc', label: 'thesis at Forschungszentrum Jülich (ICE-1)' }
 track: energy
+date: 2025-08
 featured: true
 href: 'https://www.fz-juelich.de/en/ice/ice-1'
 order: 0

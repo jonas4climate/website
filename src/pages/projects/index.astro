@@ -3,25 +3,26 @@ import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Nav from '../../components/Nav.astro';
 
+// Chronological (newest first) within each track.
 const all = (await getCollection('projects')).sort(
-  (a, b) => a.data.order - b.data.order,
+  (a, b) => b.data.date.localeCompare(a.data.date) || a.data.order - b.data.order,
 );
 const itemsOf = (t: string) => all.filter((p) => p.data.track === t);
 
 const tracks = [
-  {
-    key: 'compsci',
-    idx: '/ computational science',
-    title: 'Computational science',
-    blurb: 'Simulation, modelling and machine-learning projects.',
-    items: itemsOf('compsci'),
-  },
   {
     key: 'energy',
     idx: '/ energy research',
     title: 'Energy research',
     blurb: 'Building energy systems, control and optimal operation.',
     items: itemsOf('energy'),
+  },
+  {
+    key: 'compsci',
+    idx: '/ computational science',
+    title: 'Computational science',
+    blurb: 'Simulation, modelling and machine-learning projects.',
+    items: itemsOf('compsci'),
   },
   {
     key: 'climate',
@@ -122,6 +123,7 @@ const tracks = [
   .ap-track__blurb { max-width: 46ch; }
 
   .ap-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-m); }
+  .ap-card { min-width: 0; }  /* allow cards to shrink so long content can't overrun the grid */
   .ap-card {
     position: relative; display: block; padding: var(--space-l);
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);

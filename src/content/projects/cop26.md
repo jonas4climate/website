@@ -1,10 +1,11 @@
 ---
-title: UN COP26 — event coordination
+title: UN COP26 Conference
 tagline: Coordinating a conference event at the UN COP26 climate summit in Glasgow — managing venue, streaming and press outreach.
 role: Event coordinator · ClimateScience
 period: Nov 2021
 tags: ['event coordination', 'climate policy']
 track: climate
+date: 2021-11
 href: 'https://unfccc.int/process-and-meetings/the-paris-agreement/the-glasgow-climate-pact-key-outcomes-from-cop26'
 order: 5
 ---

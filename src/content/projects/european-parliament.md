@@ -1,10 +1,11 @@
 ---
-title: Democracy & climate — European Parliament
-tagline: A speech on democracy and climate at the Level Up! conference in the European Parliament, Brussels.
+title: European Parliament Talk
+tagline: Speech on the interesection of democracy and climate at the Level Up! conference in Brussels
 role: Speaker
 period: Oct 2022
 tags: ['public speaking', 'climate policy']
 track: climate
+date: 2022-10
 href: 'https://audiovisual.ec.europa.eu/en/video/I-235549?&lg=EN'
 order: 3
 ---
